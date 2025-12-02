@@ -1,0 +1,152 @@
+// QuoteCardCell.swift
+import UIKit
+import SnapKit
+
+struct QuoteItem {
+    let authorName: String
+    let authorImageName: String
+    let quote: String
+}
+
+// MARK: - PaddedLabel
+final class PaddedLabel: UILabel {
+    var textInsets: UIEdgeInsets = .zero {
+        didSet { invalidateIntrinsicContentSize() }
+    }
+    
+    override func drawText(in rect: CGRect) {
+        super.drawText(in: rect.inset(by: textInsets))
+    }
+    
+    override var intrinsicContentSize: CGSize {
+        let base = super.intrinsicContentSize
+        return CGSize(width: base.width + textInsets.left + textInsets.right,
+                      height: base.height + textInsets.top + textInsets.bottom)
+    }
+}
+
+final class QuoteCardCell: UICollectionViewCell {
+    
+    static let id = "QuoteCardCell"
+    
+    private let cardView: UIView = {
+        let v = UIView()
+        v.backgroundColor = UIColor(named: "Background") ?? UIColor.systemBackground
+        v.layer.cornerRadius = 14
+        v.layer.masksToBounds = true
+        return v
+    }()
+    
+    // Author image (circular)
+    private let avatarImageView: UIImageView = {
+        let iv = UIImageView()
+        iv.contentMode = .scaleAspectFill
+        iv.clipsToBounds = true
+        iv.layer.cornerRadius = 92/2
+        iv.backgroundColor = .secondarySystemBackground
+        return iv
+    }()
+    
+    // Quote label
+    private let quoteLabel: UILabel = {
+        let l = UILabel()
+        l.textColor = .label
+        l.font = UIFont.systemFont(ofSize: 16, weight: .regular)
+        l.numberOfLines = .zero
+        l.textAlignment = .left
+        l.lineBreakMode = .byTruncatingTail
+        return l
+    }()
+    
+    // Author badge (padded)
+    private let authorBadge: PaddedLabel = {
+        let l = PaddedLabel()
+        l.textAlignment = .center
+        l.textColor = .white
+        l.font = UIFont.systemFont(ofSize: 13, weight: .semibold)
+        l.backgroundColor = UIColor(red: 84/255, green: 99/255, blue: 88/255, alpha: 1)
+        l.layer.cornerRadius = 16
+        l.layer.masksToBounds = true
+        l.textInsets = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
+        l.setContentHuggingPriority(.required, for: .vertical)
+        l.setContentCompressionResistancePriority(.required, for: .vertical)
+        return l
+    }()
+    
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+
+        contentView.backgroundColor = .clear
+        contentView.layer.shadowColor = UIColor.black.cgColor
+        contentView.layer.shadowOpacity = 0.08
+        contentView.layer.shadowRadius = 8
+        contentView.layer.shadowOffset = CGSize(width: 0, height: 3)
+
+        contentView.addSubview(cardView)
+        cardView.addSubview(avatarImageView)
+        cardView.addSubview(quoteLabel)
+        cardView.addSubview(authorBadge)
+
+        setupConstraints()
+        layoutIfNeeded()
+
+        avatarImageView.layer.cornerRadius = 92/2
+        cardView.layer.cornerRadius = 14
+
+    }
+
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    private func setupConstraints() {
+        cardView.snp.makeConstraints { make in
+            make.edges.equalToSuperview()
+        }
+        
+        avatarImageView.snp.makeConstraints { make in
+            make.leading.equalToSuperview().offset(12)
+            make.centerY.equalToSuperview()
+            make.size.equalTo(CGSize(width: 92, height: 92))
+        }
+        
+        quoteLabel.snp.makeConstraints { make in
+            make.top.equalToSuperview().offset(14)
+            make.leading.equalTo(avatarImageView.snp.trailing).offset(12)
+            make.trailing.equalToSuperview().inset(20)
+        }
+        quoteLabel.setContentCompressionResistancePriority(.required, for: .vertical)
+
+        
+        authorBadge.snp.makeConstraints { make in
+            make.top.equalTo(quoteLabel.snp.bottom).offset(8)
+            make.leading.equalTo(quoteLabel)
+            make.trailing.equalTo(quoteLabel)
+            make.height.equalTo(32)
+            make.bottom.equalToSuperview().inset(18)
+        }
+
+
+    }
+    
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        avatarImageView.layer.cornerRadius = avatarImageView.bounds.height / 2
+        cardView.layer.cornerRadius = 14
+
+    }
+    
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        avatarImageView.image = nil
+        quoteLabel.text = nil
+        authorBadge.text = nil
+    }
+    
+    func configure(with item: QuoteItem) {
+        avatarImageView.image = UIImage(named: item.authorImageName)
+        quoteLabel.text = "«\(item.quote)»"
+        authorBadge.text = item.authorName.uppercased()
+    }
+}
