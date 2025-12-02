@@ -289,7 +289,7 @@ extension HomeViewController: UICollectionViewDataSource, UICollectionViewDelega
 // MARK: - Quotes section setup
 private extension HomeViewController {
     func setupQuotesSection() {
-        // Title
+        
         view.addSubview(quotesTitleLabel)
         quotesTitleLabel.snp.makeConstraints { make in
             make.top.equalTo(pageControl.snp.bottom).offset(20)
@@ -297,7 +297,6 @@ private extension HomeViewController {
             make.trailing.equalToSuperview().inset(16)
         }
         
-        // Collection
         quotesCollectionView.register(QuoteCardCell.self, forCellWithReuseIdentifier: QuoteCardCell.id)
         quotesCollectionView.dataSource = self
         quotesCollectionView.delegate = self
