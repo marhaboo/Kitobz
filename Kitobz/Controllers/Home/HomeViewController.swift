@@ -23,6 +23,8 @@ final class HomeViewController: UIViewController {
     private let recommendedSection = BookSectionView(title: "Рекомендуем")
     private let discountSection = BookSectionView(title: "Скидки")
     private let quoteSection = QuoteSectionView()
+    private let roundCardSection = RoundCardSectionView()
+
 
     // MARK: - Mock Data
     private var banners: [Banner] = [
@@ -62,6 +64,18 @@ final class HomeViewController: UIViewController {
         .init(authorName: "СЕРГЕЙ ЕСЕНИН", authorImageName: "author2", text: "Если тронуть страсти в человеке, то, конечно, правды не найдешь"),
         .init(authorName: "ФЁДОР ДОСТОЕВСКИЙ", authorImageName: "author3", text: "Перестать читать книги — значит перестать мыслить")
     ]
+    
+    private var roundCardItems: [RoundCardItem] = [
+        .init(title: "Доставка", imageName: "Delivery"),
+        .init(title: "Рассрочка", imageName: "Installment"),
+        .init(title: "Соц. сети", imageName: "SocialMedia"),
+        .init(title: "Гифт карты", imageName: "GiftCards"),
+        .init(title: "Отзывы", imageName: "Reviews"),
+        .init(title: "О нас", imageName: "AboutUs"),
+        .init(title: "Аккаунт", imageName: "Account")
+        
+    ]
+
 
     // MARK: - Lifecycle
     override func viewDidLoad() {
@@ -163,7 +177,7 @@ final class HomeViewController: UIViewController {
 
     // MARK: - Sections Layout
     private func setupSections() {
-        let sections = [bannerSection, bestBooksSection, recommendedSection, discountSection, quoteSection]
+        let sections = [bannerSection, bestBooksSection, recommendedSection, roundCardSection, discountSection, quoteSection]
         var lastView: UIView? = nil
         for section in sections {
             contentView.addSubview(section)
@@ -190,6 +204,7 @@ final class HomeViewController: UIViewController {
         recommendedSection.setBooks(recommendedBooks)
         discountSection.setBooks(discountBooks)
         quoteSection.setQuotes(quotes)
+        roundCardSection.items = roundCardItems
     }
 
     // MARK: - Actions

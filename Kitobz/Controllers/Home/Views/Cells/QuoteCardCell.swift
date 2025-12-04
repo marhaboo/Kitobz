@@ -36,7 +36,20 @@ final class QuoteCardCell: UICollectionViewCell {
         v.backgroundColor = UIColor(named: "cardBg") ?? UIColor.systemBackground
         v.layer.cornerRadius = 14
         v.layer.masksToBounds = true
-        return v
+        
+        let bgImageView = UIImageView(image: UIImage(named: "cardBgImage"))
+           bgImageView.contentMode = .scaleAspectFill
+           bgImageView.clipsToBounds = true
+           v.addSubview(bgImageView)
+           bgImageView.translatesAutoresizingMaskIntoConstraints = false
+           NSLayoutConstraint.activate([
+               bgImageView.topAnchor.constraint(equalTo: v.topAnchor),
+               bgImageView.bottomAnchor.constraint(equalTo: v.bottomAnchor),
+               bgImageView.leadingAnchor.constraint(equalTo: v.leadingAnchor),
+               bgImageView.trailingAnchor.constraint(equalTo: v.trailingAnchor)
+           ])
+
+           return v
     }()
     
     // Author image (circular)
@@ -78,11 +91,6 @@ final class QuoteCardCell: UICollectionViewCell {
     override init(frame: CGRect) {
         super.init(frame: frame)
 
-        contentView.layer.shadowColor = UIColor.black.cgColor
-        contentView.layer.shadowOpacity = 0.08
-        contentView.layer.shadowRadius = 8
-        contentView.layer.shadowOffset = CGSize(width: 0, height: 3)
-        
 
         contentView.addSubview(cardView)
         cardView.addSubview(avatarImageView)
@@ -114,7 +122,7 @@ final class QuoteCardCell: UICollectionViewCell {
         quoteLabel.snp.makeConstraints { make in
             make.top.equalToSuperview().offset(14)
             make.leading.equalTo(avatarImageView.snp.trailing).offset(12)
-            make.trailing.equalToSuperview().inset(20)
+            make.trailing.equalToSuperview().inset(28)
             make.centerY.equalToSuperview()
             make.bottom.equalTo(authorBadge.snp.top)
             
