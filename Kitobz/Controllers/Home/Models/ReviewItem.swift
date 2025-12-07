@@ -7,6 +7,7 @@ enum ReviewMood {
 }
 
 struct ReviewItem {
+    let bookId: String
     let userName: String
     let date: String
     let bookCoverImageName: String

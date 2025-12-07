@@ -43,7 +43,7 @@ final class RoundCardSectionView: UIView {
         addSubview(collectionView)
         collectionView.snp.makeConstraints { make in
             make.edges.equalToSuperview()
-            make.height.equalTo(130) // высота под круг + подпись
+            make.height.equalTo(130) 
         }
     }
 

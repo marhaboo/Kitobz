@@ -34,28 +34,103 @@ final class HomeViewController: UIViewController {
         Banner(imageName: "banner")
     ]
 
-    private var bestBooks: [Book] = [
-        .init(coverImageName: "book1", title: "Война и мир", author: "Лев Толстой", price: "75 TJS", oldPrice: nil, discountText: nil),
-        .init(coverImageName: "book2", title: "Преступление и наказание", author: "Фёдор Достоевский", price: "63 TJS", oldPrice: nil, discountText: nil),
-        .init(coverImageName: "book3", title: "Анна Каренина", author: "Лев Толстой", price: "52 TJS", oldPrice: nil, discountText: nil),
-        .init(coverImageName: "book1", title: "Война и мир", author: "Лев Толстой", price: "75 TJS", oldPrice: nil, discountText: nil),
-        .init(coverImageName: "book2", title: "Преступление и наказание", author: "Фёдор Достоевский", price: "63 TJS", oldPrice: nil, discountText: nil),
-        .init(coverImageName: "book3", title: "Анна Каренина", author: "Лев Толстой", price: "52 TJS", oldPrice: nil, discountText: nil)
+    private lazy var warAndPeace: Book = Book(
+        coverImageName: "book1",
+        title: "Война и мир",
+        author: "Лев Толстой",
+        price: "75 TJS",
+        bookDescription: "«Война и мир» Л. Н. Толстого — книга на все времена. Кажется, что она существовала всегда, настолько знакомым кажется текст, едва мы открываем первые страницы романа, настолько памятны многие его эпизоды: охота и святки, первый бал Наташи Ростовой, лунная ночь в Отрадном, князь Андрей в сражении при Аустерлице... Сцены «мирной», семейной жизни сменяются картинами, имеющими значение для хода всей мировой истории, но для Толстого они равноценны, связаны в едином потоке времени. Каждый эпизод важен не только для развития сюжета, но и как одно из бесчисленных проявлений жизни, которая насыщена в каждом своем моменте и которую учит любить Толстой.",
+        rating: 4.8,
+        ageRating: "12+",
+        language: "Русский",
+        coverType: "Твёрдый",
+        pageCount: 1225,
+        publishYear: 1869
+    )
+
+    private lazy var crimeAndPunishment: Book = Book(
+        coverImageName: "book2",
+        title: "Преступление и наказание",
+        author: "Фёдор Достоевский",
+        price: "63 TJS",
+        bookDescription: """
+        "Преступление и наказание" - высочайший образец криминального романа. В рамках жанра полицейского расследования писатель поставил вопросы, и по сей день не решенные. Кем должен быть человек: "тварью дрожащей", как говорит Раскольников, или "Наполеоном"? И это проблема уже XXI века. Написанный в 1866 году роман "Преступление и наказание" до сих пор остается самой читаемой в мире книгой и входит в большинство школьных программ по литературе.
+        """,
+        rating: 4.7,
+        ageRating: "16+",
+        language: "Русский",
+        coverType: "Мягкий",
+        pageCount: 671,
+        publishYear: 1866
+    )
+
+    private lazy var annaKarenina: Book = Book(
+        coverImageName: "book3",
+        title: "Анна Каренина",
+        author: "Лев Толстой",
+        price: "52 TJS",
+        bookDescription: """
+            "Анна Каренина" - лучший роман о женщине, написанный в XIX веке. По словам Ф.М.Достоевского, "Анна Каренина" поразила современников "не только вседневностью содержания, но и огромной психологической разработкой души человеческой, страшной глубиной и силой". Уже к началу 1900-х годов роман Толстого был переведен на многие языки мира, а в настоящее время входит в золотой фонд мировой литературы."
+        """,
+        rating: 4.6,
+        ageRating: "14+",
+        language: "Русский",
+        coverType: "Твёрдый",
+        pageCount: 864,
+        publishYear: 1878
+    )
+
+    private lazy var fahrenheit451: Book = Book(
+        coverImageName: "book4",
+        title: "451 градус по Фаренгейту",
+        author: "Рэй Брэдбери",
+        price: "42 TJS",
+        bookDescription: "Философская антиутопия Брэдбери рисует беспросветную картину развития постиндустриального общества. Роман, принесший своему творцу мировую известность.",
+        rating: 4.5,
+        ageRating: "16+",
+        language: "Русский",
+        coverType: "Мягкий",
+        pageCount: 256,
+        publishYear: 1953
+    )
+
+    private lazy var hpStone: Book = Book(
+        coverImageName: "book5",
+        title: "Гарри Поттер и философский камень",
+        author: "Дж. К. Роулинг",
+        price: "60 TJS",
+        bookDescription: "Книга, покорившая мир, эталон литературы для читателей всех возрастов, синоним успеха. Книга, сделавшая Джоан Роулинг самым читаемым писателем современности. Книга, ставшая культовой уже для нескольких поколений. «Гарри Поттер и Философский камень» - история начинается.",
+        rating: 4.9,
+        ageRating: "12+",
+        language: "Русский",
+        coverType: "Твёрдый",
+        pageCount: 334,
+        publishYear: 1997
+    )
+
+    private lazy var reviews: [ReviewItem] = [
+        .init(bookId: warAndPeace.id,
+              userName: "Shukrullo",
+              date: "01.08.2025",
+              bookCoverImageName: "book1",
+              bookTitle: "Джордж Оруэлл: 1984 (М)",
+              rating: 5,
+              reviewText: "Первая книга которую я читал и до сих пор иногда читаю...",
+              mood: .happy),
+        .init(bookId: crimeAndPunishment.id,
+              userName: "SGR",
+              date: "01.07.2025",
+              bookCoverImageName: "book2",
+              bookTitle: "Элбом Митч: Вторники с Морри, или",
+              rating: 5,
+              reviewText: "Книга в целом простая по форме, но глубокая по содержанию...",
+              mood: .happy)
     ]
 
-    private var recommendedBooks: [Book] = [
-        .init(coverImageName: "book1", title: "451 градус по Фаренгейту", author: "Рэй Брэдбери", price: "42 TJS", oldPrice: nil, discountText: nil),
-        .init(coverImageName: "book2", title: "Гарри Поттер", author: "Дж. К. Роулинг", price: "60 TJS", oldPrice: nil, discountText: nil),
-        .init(coverImageName: "book1", title: "451 градус по Фаренгейту", author: "Рэй Брэдбери", price: "42 TJS", oldPrice: nil, discountText: nil),
-        .init(coverImageName: "book2", title: "Гарри Поттер", author: "Дж. К. Роулинг", price: "60 TJS", oldPrice: nil, discountText: nil)
-    ]
-
-    private var discountBooks: [Book] = [
-        .init(coverImageName: "book3", title: "Старик и море", author: "Эрнест Хемингуэй", price: "30 TJS", oldPrice: "45 TJS", discountText: "-33%"),
-        .init(coverImageName: "book1", title: "Алхимик", author: "Пауло Коэльо", price: "35 TJS", oldPrice: "50 TJS", discountText: "-30%"),
-        .init(coverImageName: "book3", title: "Старик и море", author: "Эрнест Хемингуэй", price: "30 TJS", oldPrice: "45 TJS", discountText: "-33%"),
-        .init(coverImageName: "book1", title: "Алхимик", author: "Пауло Коэльо", price: "35 TJS", oldPrice: "50 TJS", discountText: "-30%")
-    ]
+    // Sections data
+    private lazy var bestBooks: [Book] = [warAndPeace, crimeAndPunishment, annaKarenina]
+    private lazy var recommendedBooks: [Book] = [fahrenheit451, hpStone]
+    private lazy var discountBooks: [Book] = [crimeAndPunishment, annaKarenina]
 
     private var quotes: [Quote] = [
         .init(authorName: "АГАТА КРИСТИ", authorImageName: "author1", text: "Нет ничего более увлекательного, чем тайна, которую предстоит разгадать"),
@@ -73,28 +148,12 @@ final class HomeViewController: UIViewController {
         .init(title: "Аккаунт", imageName: "Account")
     ]
 
-    private var reviews: [ReviewItem] = [
-        .init(userName: "Shukrullo",
-              date: "01.08.2025",
-              bookCoverImageName: "book1",
-              bookTitle: "Джордж Оруэлл: 1984 (М)",
-              rating: 5,
-              reviewText: "Первая книга которую я читал и до сих пор иногда читаю...",
-              mood: .happy),
-        .init(userName: "SGR",
-              date: "01.07.2025",
-              bookCoverImageName: "book2",
-              bookTitle: "Элбом Митч: Вторники с Морри, или",
-              rating: 5,
-              reviewText: "Книга в целом простая по форме, но глубокая по содержанию. Чтение вызывает эмоции — от тёплой улыбки до слёз. Она будто напоминает что самое главное в жизни...",
-              mood: .happy)
-    ]
-    
     private var socialMediaItems: [SocialMediaItem] = [
-        .init(platform: "Instagram", iconName: "InstagramIcon", username: "@kitobz.tj"),
-        .init(platform: "Facebook", iconName: "FacebookIcon", username: "@kitobz"),
-        .init(platform: "Telegram", iconName: "TelegramIcon", username: "@kitobz"),
-        .init(platform: "Viber", iconName: "ViberIcon", username: "+992903022298")
+        .init(iconName: "InstagramIcon", link: URL(string: "https://instagram.com/kitobz.tj")!),
+        .init(iconName: "FacebookIcon", link: URL(string: "https://facebook.com/kitobz")!),
+        .init(iconName: "TelegramIcon", link: URL(string: "https://t.me/kitobz")!),
+        .init(iconName: "ViberIcon", link: URL(string: "tel:903022298")!)
+    
     ]
 
     // MARK: - Lifecycle
@@ -105,7 +164,9 @@ final class HomeViewController: UIViewController {
         setupScrollView()
         setupSections()
         loadData()
+        setupBookTapHandlers()
     }
+
 
     // MARK: - Navigation Bar
     private func configureNavigationBar() {
@@ -127,7 +188,6 @@ final class HomeViewController: UIViewController {
         let logo = UIImageView(image: UIImage(named: "logo"))
         logo.contentMode = .scaleAspectFit
         let titleWrapper = UIView()
-        
         titleWrapper.addSubview(logo)
         logo.snp.makeConstraints { make in
             make.center.equalToSuperview()
@@ -155,17 +215,17 @@ final class HomeViewController: UIViewController {
     private func applyAppearanceForCurrentStyle() {
         let appearance = UINavigationBarAppearance()
         appearance.configureWithOpaqueBackground()
-        appearance.backgroundColor = UIColor(named: "Background") ?? .systemBackground
-        appearance.shadowColor = UIColor.separator.withAlphaComponent(0.22)
+        appearance.backgroundColor = UIColor(named: "Background")
         appearance.titleTextAttributes = [.foregroundColor: UIColor.label]
-        appearance.largeTitleTextAttributes = [.foregroundColor: UIColor.label]
+        appearance.shadowColor = UIColor.separator.withAlphaComponent(0.2)
 
         let bar = navigationController?.navigationBar
         bar?.standardAppearance = appearance
-        bar?.compactAppearance = appearance
         bar?.scrollEdgeAppearance = appearance
+        bar?.compactAppearance = appearance
         bar?.tintColor = UIColor.label
     }
+
 
     private func updateThemeToggleIcon(on button: UIButton? = nil) {
         let isDark = traitCollection.userInterfaceStyle == .dark
@@ -178,9 +238,12 @@ final class HomeViewController: UIViewController {
 
     override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
         super.traitCollectionDidChange(previousTraitCollection)
+
+        view.backgroundColor = UIColor(named: "Background")
         updateThemeToggleIcon()
         applyAppearanceForCurrentStyle()
     }
+
 
     // MARK: - ScrollView Setup
     private func setupScrollView() {
@@ -198,13 +261,14 @@ final class HomeViewController: UIViewController {
     private func setupSections() {
         let sections: [UIView] = [
             bannerSection,
+            roundCardSection,
             bestBooksSection,
             recommendedSection,
-            roundCardSection,
-            socialMediaSection,
             discountSection,
             reviewSection,
-            quoteSection
+            socialMediaSection,
+            quoteSection,
+
         ]
 
         var lastView: UIView? = nil
@@ -238,17 +302,31 @@ final class HomeViewController: UIViewController {
         quoteSection.setQuotes(quotes)
     }
 
+    // MARK: - Book Tap Handling
+    private func setupBookTapHandlers() {
+        bestBooksSection.onBookSelected = { [weak self] book in
+            self?.openBookDetail(book)
+        }
+        recommendedSection.onBookSelected = { [weak self] book in
+            self?.openBookDetail(book)
+        }
+        discountSection.onBookSelected = { [weak self] book in
+            self?.openBookDetail(book)
+        }
+    }
+
+    private func openBookDetail(_ book: Book) {
+        let filtered = reviews.filter { $0.bookId == book.id }
+        let vc = BookDetailViewController(book: book, reviews: filtered)
+        navigationController?.pushViewController(vc, animated: true)
+    }
+
     // MARK: - Actions
     @objc private func didTapThemeToggle() {
         let isDark = traitCollection.userInterfaceStyle == .dark
         overrideUserInterfaceStyle = isDark ? .light : .dark
+        navigationController?.overrideUserInterfaceStyle = overrideUserInterfaceStyle
         applyAppearanceForCurrentStyle()
-        
-        navigationController?.navigationBar.setNeedsLayout()
-        navigationController?.navigationBar.layoutIfNeeded()
-
-        if let button = themeToggleButton?.customView as? UIButton {
-            updateThemeToggleIcon(on: button)
-        }
     }
+
 }
