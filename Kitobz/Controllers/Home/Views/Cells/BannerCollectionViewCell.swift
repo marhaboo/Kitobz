@@ -7,9 +7,7 @@
 
 import UIKit
 
-struct Banner {
-    let imageName: String
-}
+
 
 class BannerCollectionViewCell: UICollectionViewCell {
     

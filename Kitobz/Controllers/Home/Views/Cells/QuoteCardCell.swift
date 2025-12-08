@@ -1,12 +1,13 @@
-// QuoteCardCell.swift
+//
+//  QuoteItem.swift
+//  Kitobz
+//
+//  Created by Boymurodova Marhabo on 02/12/25.
+//
+
 import UIKit
 import SnapKit
 
-struct QuoteItem {
-    let authorName: String
-    let authorImageName: String
-    let quote: String
-}
 
 // MARK: - PaddedLabel
 final class PaddedLabel: UILabel {
@@ -29,12 +30,26 @@ final class QuoteCardCell: UICollectionViewCell {
     
     static let id = "QuoteCardCell"
     
+    // Card background
     private let cardView: UIView = {
         let v = UIView()
-        v.backgroundColor = UIColor(named: "Background") ?? UIColor.systemBackground
+        v.backgroundColor = UIColor(named: "cardBg") ?? UIColor.systemBackground
         v.layer.cornerRadius = 14
         v.layer.masksToBounds = true
-        return v
+        
+        let bgImageView = UIImageView(image: UIImage(named: "cardBgImage"))
+           bgImageView.contentMode = .scaleAspectFill
+           bgImageView.clipsToBounds = true
+           v.addSubview(bgImageView)
+           bgImageView.translatesAutoresizingMaskIntoConstraints = false
+           NSLayoutConstraint.activate([
+               bgImageView.topAnchor.constraint(equalTo: v.topAnchor),
+               bgImageView.bottomAnchor.constraint(equalTo: v.bottomAnchor),
+               bgImageView.leadingAnchor.constraint(equalTo: v.leadingAnchor),
+               bgImageView.trailingAnchor.constraint(equalTo: v.trailingAnchor)
+           ])
+
+           return v
     }()
     
     // Author image (circular)
@@ -51,7 +66,7 @@ final class QuoteCardCell: UICollectionViewCell {
     private let quoteLabel: UILabel = {
         let l = UILabel()
         l.textColor = .label
-        l.font = UIFont.systemFont(ofSize: 16, weight: .regular)
+        l.font = UIFont.systemFont(ofSize: 14, weight: .regular)
         l.numberOfLines = .zero
         l.textAlignment = .left
         l.lineBreakMode = .byTruncatingTail
@@ -64,8 +79,8 @@ final class QuoteCardCell: UICollectionViewCell {
         l.textAlignment = .center
         l.textColor = .white
         l.font = UIFont.systemFont(ofSize: 13, weight: .semibold)
-        l.backgroundColor = UIColor(red: 84/255, green: 99/255, blue: 88/255, alpha: 1)
-        l.layer.cornerRadius = 16
+        l.backgroundColor = UIColor(named: "AccentColor2")
+        l.layer.cornerRadius = 10
         l.layer.masksToBounds = true
         l.textInsets = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
         l.setContentHuggingPriority(.required, for: .vertical)
@@ -76,11 +91,6 @@ final class QuoteCardCell: UICollectionViewCell {
     override init(frame: CGRect) {
         super.init(frame: frame)
 
-        contentView.backgroundColor = .clear
-        contentView.layer.shadowColor = UIColor.black.cgColor
-        contentView.layer.shadowOpacity = 0.08
-        contentView.layer.shadowRadius = 8
-        contentView.layer.shadowOffset = CGSize(width: 0, height: 3)
 
         contentView.addSubview(cardView)
         cardView.addSubview(avatarImageView)
@@ -91,8 +101,6 @@ final class QuoteCardCell: UICollectionViewCell {
         layoutIfNeeded()
 
         avatarImageView.layer.cornerRadius = 92/2
-        cardView.layer.cornerRadius = 14
-
     }
 
     
@@ -114,18 +122,22 @@ final class QuoteCardCell: UICollectionViewCell {
         quoteLabel.snp.makeConstraints { make in
             make.top.equalToSuperview().offset(14)
             make.leading.equalTo(avatarImageView.snp.trailing).offset(12)
-            make.trailing.equalToSuperview().inset(20)
+            make.trailing.equalToSuperview().inset(28)
+            make.centerY.equalToSuperview()
+            make.bottom.equalTo(authorBadge.snp.top)
+            
         }
         quoteLabel.setContentCompressionResistancePriority(.required, for: .vertical)
 
         
         authorBadge.snp.makeConstraints { make in
-            make.top.equalTo(quoteLabel.snp.bottom).offset(8)
-            make.leading.equalTo(quoteLabel)
-            make.trailing.equalTo(quoteLabel)
-            make.height.equalTo(32)
-            make.bottom.equalToSuperview().inset(18)
+            make.top.equalTo(quoteLabel.snp.bottom)
+            make.leading.equalTo(quoteLabel).offset(16)
+            make.trailing.equalTo(quoteLabel).inset(16)
+            make.height.equalTo(20)
+            make.bottom.equalToSuperview().inset(25)
         }
+        
 
 
     }
@@ -133,8 +145,6 @@ final class QuoteCardCell: UICollectionViewCell {
     override func layoutSubviews() {
         super.layoutSubviews()
         avatarImageView.layer.cornerRadius = avatarImageView.bounds.height / 2
-        cardView.layer.cornerRadius = 14
-
     }
     
     override func prepareForReuse() {
@@ -144,9 +154,9 @@ final class QuoteCardCell: UICollectionViewCell {
         authorBadge.text = nil
     }
     
-    func configure(with item: QuoteItem) {
+    func configure(with item: Quote) {
         avatarImageView.image = UIImage(named: item.authorImageName)
-        quoteLabel.text = "«\(item.quote)»"
+        quoteLabel.text = "«\(item.text)»"
         authorBadge.text = item.authorName.uppercased()
     }
 }
