@@ -2,7 +2,7 @@
 //  HomeViewController.swift
 //  Kitobz
 //
-//  Created by Boymurodova Marhabo on 01/12/25.
+//  Created by Boymuroдова Marhabo on 01/12/25.
 //
 
 import UIKit
@@ -10,14 +10,11 @@ import SnapKit
 
 final class HomeViewController: UIViewController {
 
-    // MARK: - Nav items
     private var themeToggleButton: UIBarButtonItem?
 
-    // MARK: - ScrollView
     private let scrollView = UIScrollView()
     private let contentView = UIView()
 
-    // MARK: - Sections
     private let bannerSection = BannerSectionView()
     private let bestBooksSection = BookSectionView(title: "Лучшие книги")
     private let recommendedSection = BookSectionView(title: "Рекомендуем")
@@ -27,136 +24,19 @@ final class HomeViewController: UIViewController {
     private let roundCardSection = RoundCardSectionView()
     private let socialMediaSection = SocialMediaSectionView()
 
-    // MARK: - Mock Data
-    private var banners: [Banner] = [
-        Banner(imageName: "banner"),
-        Banner(imageName: "banner2"),
-        Banner(imageName: "banner")
-    ]
+    private var banners: [Banner] = []
+    private var allBooks: [Book] = []
+    private var bestBooks: [Book] = []
+    private var recommendedBooks: [Book] = []
+    private var discountBooks: [Book] = []
+    private var reviews: [ReviewItem] = []
+    private var quotes: [Quote] = []
+    private var roundCardItems: [RoundCardItem] = []
+    private var socialMediaItems: [SocialMediaItem] = []
 
-    private lazy var warAndPeace: Book = Book(
-        coverImageName: "book1",
-        title: "Война и мир",
-        author: "Лев Толстой",
-        price: "75 TJS",
-        bookDescription: "«Война и мир» Л. Н. Толстого — книга на все времена. Кажется, что она существовала всегда, настолько знакомым кажется текст, едва мы открываем первые страницы романа, настолько памятны многие его эпизоды: охота и святки, первый бал Наташи Ростовой, лунная ночь в Отрадном, князь Андрей в сражении при Аустерлице... Сцены «мирной», семейной жизни сменяются картинами, имеющими значение для хода всей мировой истории, но для Толстого они равноценны, связаны в едином потоке времени. Каждый эпизод важен не только для развития сюжета, но и как одно из бесчисленных проявлений жизни, которая насыщена в каждом своем моменте и которую учит любить Толстой.",
-        rating: 4.8,
-        ageRating: "12+",
-        language: "Русский",
-        coverType: "Твёрдый",
-        pageCount: 1225,
-        publishYear: 1869
-    )
+    // Stories
+    private var stories: [Story] = []
 
-    private lazy var crimeAndPunishment: Book = Book(
-        coverImageName: "book2",
-        title: "Преступление и наказание",
-        author: "Фёдор Достоевский",
-        price: "63 TJS",
-        bookDescription: """
-        "Преступление и наказание" - высочайший образец криминального романа. В рамках жанра полицейского расследования писатель поставил вопросы, и по сей день не решенные. Кем должен быть человек: "тварью дрожащей", как говорит Раскольников, или "Наполеоном"? И это проблема уже XXI века. Написанный в 1866 году роман "Преступление и наказание" до сих пор остается самой читаемой в мире книгой и входит в большинство школьных программ по литературе.
-        """,
-        rating: 4.7,
-        ageRating: "16+",
-        language: "Русский",
-        coverType: "Мягкий",
-        pageCount: 671,
-        publishYear: 1866
-    )
-
-    private lazy var annaKarenina: Book = Book(
-        coverImageName: "book3",
-        title: "Анна Каренина",
-        author: "Лев Толстой",
-        price: "52 TJS",
-        bookDescription: """
-            "Анна Каренина" - лучший роман о женщине, написанный в XIX веке. По словам Ф.М.Достоевского, "Анна Каренина" поразила современников "не только вседневностью содержания, но и огромной психологической разработкой души человеческой, страшной глубиной и силой". Уже к началу 1900-х годов роман Толстого был переведен на многие языки мира, а в настоящее время входит в золотой фонд мировой литературы."
-        """,
-        rating: 4.6,
-        ageRating: "14+",
-        language: "Русский",
-        coverType: "Твёрдый",
-        pageCount: 864,
-        publishYear: 1878
-    )
-
-    private lazy var fahrenheit451: Book = Book(
-        coverImageName: "book4",
-        title: "451 градус по Фаренгейту",
-        author: "Рэй Брэдбери",
-        price: "42 TJS",
-        bookDescription: "Философская антиутопия Брэдбери рисует беспросветную картину развития постиндустриального общества. Роман, принесший своему творцу мировую известность.",
-        rating: 4.5,
-        ageRating: "16+",
-        language: "Русский",
-        coverType: "Мягкий",
-        pageCount: 256,
-        publishYear: 1953
-    )
-
-    private lazy var hpStone: Book = Book(
-        coverImageName: "book5",
-        title: "Гарри Поттер и философский камень",
-        author: "Дж. К. Роулинг",
-        price: "60 TJS",
-        bookDescription: "Книга, покорившая мир, эталон литературы для читателей всех возрастов, синоним успеха. Книга, сделавшая Джоан Роулинг самым читаемым писателем современности. Книга, ставшая культовой уже для нескольких поколений. «Гарри Поттер и Философский камень» - история начинается.",
-        rating: 4.9,
-        ageRating: "12+",
-        language: "Русский",
-        coverType: "Твёрдый",
-        pageCount: 334,
-        publishYear: 1997
-    )
-
-    private lazy var reviews: [ReviewItem] = [
-        .init(bookId: warAndPeace.id,
-              userName: "Shukrullo",
-              date: "01.08.2025",
-              bookCoverImageName: "book1",
-              bookTitle: "Джордж Оруэлл: 1984 (М)",
-              rating: 5,
-              reviewText: "Первая книга которую я читал и до сих пор иногда читаю...",
-              mood: .happy),
-        .init(bookId: crimeAndPunishment.id,
-              userName: "SGR",
-              date: "01.07.2025",
-              bookCoverImageName: "book2",
-              bookTitle: "Элбом Митч: Вторники с Морри, или",
-              rating: 5,
-              reviewText: "Книга в целом простая по форме, но глубокая по содержанию...",
-              mood: .happy)
-    ]
-
-    // Sections data
-    private lazy var bestBooks: [Book] = [warAndPeace, crimeAndPunishment, annaKarenina]
-    private lazy var recommendedBooks: [Book] = [fahrenheit451, hpStone]
-    private lazy var discountBooks: [Book] = [crimeAndPunishment, annaKarenina]
-
-    private var quotes: [Quote] = [
-        .init(authorName: "АГАТА КРИСТИ", authorImageName: "author1", text: "Нет ничего более увлекательного, чем тайна, которую предстоит разгадать"),
-        .init(authorName: "СЕРГЕЙ ЕСЕНИН", authorImageName: "author2", text: "Если тронуть страсти в человеке, то, конечно, правды не найдешь"),
-        .init(authorName: "ФЁДОР ДОСТОЕВСКИЙ", authorImageName: "author3", text: "Перестать читать книги — значит перестать мыслить")
-    ]
-    
-    private var roundCardItems: [RoundCardItem] = [
-        .init(title: "Доставка", imageName: "Delivery"),
-        .init(title: "Рассрочка", imageName: "Installment"),
-        .init(title: "Соц. сети", imageName: "SocialMedia"),
-        .init(title: "Гифт карты", imageName: "GiftCards"),
-        .init(title: "Отзывы", imageName: "Reviews"),
-        .init(title: "О нас", imageName: "AboutUs"),
-        .init(title: "Аккаунт", imageName: "Account")
-    ]
-
-    private var socialMediaItems: [SocialMediaItem] = [
-        .init(iconName: "InstagramIcon", link: URL(string: "https://instagram.com/kitobz.tj")!),
-        .init(iconName: "FacebookIcon", link: URL(string: "https://facebook.com/kitobz")!),
-        .init(iconName: "TelegramIcon", link: URL(string: "https://t.me/kitobz")!),
-        .init(iconName: "ViberIcon", link: URL(string: "tel:903022298")!)
-    
-    ]
-
-    // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = UIColor(named: "Background")
@@ -165,16 +45,14 @@ final class HomeViewController: UIViewController {
         setupSections()
         loadData()
         setupBookTapHandlers()
+        setupStoriesTapHandler()
     }
 
-
-    // MARK: - Navigation Bar
     private func configureNavigationBar() {
         let bar = navigationController?.navigationBar
         bar?.prefersLargeTitles = false
         bar?.tintColor = UIColor.label
 
-        // Left menu button
         let menuButton = UIButton(type: .system)
         menuButton.setImage(UIImage(systemName: "line.horizontal.3"), for: .normal)
         menuButton.tintColor = UIColor.label
@@ -184,7 +62,6 @@ final class HomeViewController: UIViewController {
         }
         navigationItem.leftBarButtonItem = UIBarButtonItem(customView: menuButton)
 
-        // Center logo as titleView
         let logo = UIImageView(image: UIImage(named: "logo"))
         logo.contentMode = .scaleAspectFit
         let titleWrapper = UIView()
@@ -196,7 +73,6 @@ final class HomeViewController: UIViewController {
         }
         navigationItem.titleView = titleWrapper
 
-        // Right theme toggle button
         let themeButton = UIButton(type: .system)
         themeButton.addTarget(self, action: #selector(didTapThemeToggle), for: .touchUpInside)
         themeButton.tintColor = UIColor.label
@@ -226,7 +102,6 @@ final class HomeViewController: UIViewController {
         bar?.tintColor = UIColor.label
     }
 
-
     private func updateThemeToggleIcon(on button: UIButton? = nil) {
         let isDark = traitCollection.userInterfaceStyle == .dark
         let symbolName = isDark ? "sun.max" : "moon"
@@ -238,14 +113,11 @@ final class HomeViewController: UIViewController {
 
     override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
         super.traitCollectionDidChange(previousTraitCollection)
-
         view.backgroundColor = UIColor(named: "Background")
         updateThemeToggleIcon()
         applyAppearanceForCurrentStyle()
     }
 
-
-    // MARK: - ScrollView Setup
     private func setupScrollView() {
         view.addSubview(scrollView)
         scrollView.addSubview(contentView)
@@ -257,7 +129,6 @@ final class HomeViewController: UIViewController {
         }
     }
 
-    // MARK: - Sections Layout
     private func setupSections() {
         let sections: [UIView] = [
             bannerSection,
@@ -267,8 +138,7 @@ final class HomeViewController: UIViewController {
             discountSection,
             reviewSection,
             socialMediaSection,
-            quoteSection,
-
+            quoteSection
         ]
 
         var lastView: UIView? = nil
@@ -284,25 +154,44 @@ final class HomeViewController: UIViewController {
             }
             lastView = section
         }
-
         lastView?.snp.makeConstraints { make in
             make.bottom.equalToSuperview().inset(12)
         }
     }
 
-    // MARK: - Load Data
     private func loadData() {
+        allBooks = BooksProvider.baseBooks()
+
+        if allBooks.count >= 5 {
+            bestBooks = [allBooks[0], allBooks[1], allBooks[2], allBooks[4]]
+            recommendedBooks = [allBooks[4], allBooks[3], allBooks[0], allBooks[1]]
+            discountBooks = [allBooks[1], allBooks[2], allBooks[1], allBooks[2]]
+        } else {
+            bestBooks = allBooks
+            recommendedBooks = allBooks
+            discountBooks = allBooks
+        }
+
+        reviews = ReviewsProvider.loadReviews(for: allBooks)
+        banners = BannersProvider.loadBanners()
+        quotes = QuotesProvider.loadQuotes()
+        roundCardItems = RoundCardsProvider.loadItems()
+        socialMediaItems = SocialMediaProvider.loadItems()
+
+        // Stories
+        stories = StoriesProvider.loadStories()
+        roundCardSection.items = stories.map { RoundCardItem(title: $0.title, imageName: $0.coverImageName) }
+        roundCardSection.seenFlags = stories.map { $0.isSeen }
+
         bannerSection.setBanners(banners)
         bestBooksSection.setBooks(bestBooks)
         recommendedSection.setBooks(recommendedBooks)
         discountSection.setBooks(discountBooks)
-        roundCardSection.items = roundCardItems
         socialMediaSection.items = socialMediaItems
         reviewSection.items = reviews
         quoteSection.setQuotes(quotes)
     }
 
-    // MARK: - Book Tap Handling
     private func setupBookTapHandlers() {
         bestBooksSection.onBookSelected = { [weak self] book in
             self?.openBookDetail(book)
@@ -315,18 +204,33 @@ final class HomeViewController: UIViewController {
         }
     }
 
+    private func setupStoriesTapHandler() {
+        roundCardSection.onItemSelected = { [weak self] index in
+            guard let self = self else { return }
+            guard index >= 0, index < self.stories.count else { return }
+            let story = self.stories[index]
+            let viewer = StoriesViewerViewController(story: story)
+            viewer.onFinished = { [weak self] in
+                guard let self = self else { return }
+                self.stories[index].isSeen = true
+                self.roundCardSection.seenFlags[index] = true
+                self.roundCardSection.reloadItem(at: index)
+            }
+            self.present(viewer, animated: true)
+        }
+    }
+
     private func openBookDetail(_ book: Book) {
         let filtered = reviews.filter { $0.bookId == book.id }
         let vc = BookDetailViewController(book: book, reviews: filtered)
         navigationController?.pushViewController(vc, animated: true)
     }
 
-    // MARK: - Actions
     @objc private func didTapThemeToggle() {
         let isDark = traitCollection.userInterfaceStyle == .dark
         overrideUserInterfaceStyle = isDark ? .light : .dark
         navigationController?.overrideUserInterfaceStyle = overrideUserInterfaceStyle
         applyAppearanceForCurrentStyle()
     }
-
 }
+

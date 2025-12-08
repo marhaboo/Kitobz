@@ -26,35 +26,33 @@ final class BannerSectionView: UIView {
             pageControl.numberOfPages = banners.count
         }
     }
+    
+    private let sidePadding: CGFloat = 16
+    private let cardSpacing: CGFloat = 16
 
     // MARK: - Init
     override init(frame: CGRect) {
         let layout = UICollectionViewFlowLayout()
         layout.scrollDirection = .horizontal
-        layout.minimumInteritemSpacing = 0
-        let spacing: CGFloat = 12
-        layout.minimumLineSpacing = spacing
-        layout.sectionInset = .zero
+        layout.minimumLineSpacing = cardSpacing
+        layout.sectionInset = UIEdgeInsets(top: 0, left: sidePadding, bottom: 0, right: sidePadding)
 
         collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
         collectionView.backgroundColor = .clear
         collectionView.showsHorizontalScrollIndicator = false
-        collectionView.isPagingEnabled = true
-        collectionView.contentInsetAdjustmentBehavior = .never
+        collectionView.decelerationRate = .fast
         
         super.init(frame: frame)
-
-        // Add visual padding (Correct way!)
-        collectionView.contentInset = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
-
+        
         setupCollectionView()
         setupLayout()
     }
 
+    
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-
+    
     // MARK: - Setup
     private func setupCollectionView() {
         collectionView.dataSource = self
@@ -64,21 +62,20 @@ final class BannerSectionView: UIView {
         addSubview(collectionView)
         addSubview(pageControl)
     }
-
+    
     private func setupLayout() {
         collectionView.snp.makeConstraints { make in
-            make.top.equalToSuperview()
-            make.leading.trailing.equalToSuperview()
+            make.top.leading.trailing.equalToSuperview()
             make.height.equalTo(collectionView.snp.width).multipliedBy(0.42)
         }
-
+        
         pageControl.snp.makeConstraints { make in
             make.top.equalTo(collectionView.snp.bottom).offset(8)
             make.centerX.equalToSuperview()
             make.bottom.equalToSuperview()
         }
     }
-
+    
     func setBanners(_ banners: [Banner]) {
         self.banners = banners
     }
@@ -105,15 +102,19 @@ extension BannerSectionView: UICollectionViewDataSource, UICollectionViewDelegat
     func collectionView(_ collectionView: UICollectionView,
                         layout collectionViewLayout: UICollectionViewLayout,
                         sizeForItemAt indexPath: IndexPath) -> CGSize {
-
-        let width = collectionView.bounds.width - 32
+        let width = collectionView.bounds.width - sidePadding * 2
         let height = collectionView.bounds.height
         return CGSize(width: width, height: height)
     }
-
-    func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
-        let pageWidth = scrollView.frame.width
-        let page = Int(round(scrollView.contentOffset.x / pageWidth))
-        pageControl.currentPage = max(0, min(page, banners.count - 1))
+    
+    func scrollViewWillEndDragging(_ scrollView: UIScrollView,
+                                   withVelocity velocity: CGPoint,
+                                   targetContentOffset: UnsafeMutablePointer<CGPoint>) {
+        let layout = collectionView.collectionViewLayout as! UICollectionViewFlowLayout
+        let itemWidth = collectionView.bounds.width - sidePadding * 2 + layout.minimumLineSpacing
+        let targetX = scrollView.contentOffset.x + velocity.x * 60
+        let page = round(targetX / itemWidth)
+        targetContentOffset.pointee = CGPoint(x: page * itemWidth, y: 0)
+        pageControl.currentPage = Int(page)
     }
 }
