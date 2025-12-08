@@ -46,7 +46,7 @@ class CartViewController: UIViewController {
         let button = UIButton(type: .system)
         button.setTitle("Оформить заказ", for: .normal)
         button.tintColor = .white
-        button.backgroundColor = .systemBlue
+        button.backgroundColor = .red
         button.layer.cornerRadius = 12
         button.titleLabel?.font = .boldSystemFont(ofSize: 18)
         return button
