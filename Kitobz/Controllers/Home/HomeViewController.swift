@@ -22,9 +22,10 @@ final class HomeViewController: UIViewController {
     private let bestBooksSection = BookSectionView(title: "Лучшие книги")
     private let recommendedSection = BookSectionView(title: "Рекомендуем")
     private let discountSection = BookSectionView(title: "Скидки")
+    private let reviewSection = ReviewSectionView()
     private let quoteSection = QuoteSectionView()
     private let roundCardSection = RoundCardSectionView()
-
+    private let socialMediaSection = SocialMediaSectionView()
 
     // MARK: - Mock Data
     private var banners: [Banner] = [
@@ -42,7 +43,6 @@ final class HomeViewController: UIViewController {
         .init(coverImageName: "book3", title: "Анна Каренина", author: "Лев Толстой", price: "52 TJS", oldPrice: nil, discountText: nil)
     ]
 
-
     private var recommendedBooks: [Book] = [
         .init(coverImageName: "book1", title: "451 градус по Фаренгейту", author: "Рэй Брэдбери", price: "42 TJS", oldPrice: nil, discountText: nil),
         .init(coverImageName: "book2", title: "Гарри Поттер", author: "Дж. К. Роулинг", price: "60 TJS", oldPrice: nil, discountText: nil),
@@ -50,14 +50,12 @@ final class HomeViewController: UIViewController {
         .init(coverImageName: "book2", title: "Гарри Поттер", author: "Дж. К. Роулинг", price: "60 TJS", oldPrice: nil, discountText: nil)
     ]
 
-
     private var discountBooks: [Book] = [
         .init(coverImageName: "book3", title: "Старик и море", author: "Эрнест Хемингуэй", price: "30 TJS", oldPrice: "45 TJS", discountText: "-33%"),
         .init(coverImageName: "book1", title: "Алхимик", author: "Пауло Коэльо", price: "35 TJS", oldPrice: "50 TJS", discountText: "-30%"),
         .init(coverImageName: "book3", title: "Старик и море", author: "Эрнест Хемингуэй", price: "30 TJS", oldPrice: "45 TJS", discountText: "-33%"),
         .init(coverImageName: "book1", title: "Алхимик", author: "Пауло Коэльо", price: "35 TJS", oldPrice: "50 TJS", discountText: "-30%")
     ]
-
 
     private var quotes: [Quote] = [
         .init(authorName: "АГАТА КРИСТИ", authorImageName: "author1", text: "Нет ничего более увлекательного, чем тайна, которую предстоит разгадать"),
@@ -73,9 +71,31 @@ final class HomeViewController: UIViewController {
         .init(title: "Отзывы", imageName: "Reviews"),
         .init(title: "О нас", imageName: "AboutUs"),
         .init(title: "Аккаунт", imageName: "Account")
-        
     ]
 
+    private var reviews: [ReviewItem] = [
+        .init(userName: "Shukrullo",
+              date: "01.08.2025",
+              bookCoverImageName: "book1",
+              bookTitle: "Джордж Оруэлл: 1984 (М)",
+              rating: 5,
+              reviewText: "Первая книга которую я читал и до сих пор иногда читаю...",
+              mood: .happy),
+        .init(userName: "SGR",
+              date: "01.07.2025",
+              bookCoverImageName: "book2",
+              bookTitle: "Элбом Митч: Вторники с Морри, или",
+              rating: 5,
+              reviewText: "Книга в целом простая по форме, но глубокая по содержанию. Чтение вызывает эмоции — от тёплой улыбки до слёз. Она будто напоминает что самое главное в жизни...",
+              mood: .happy)
+    ]
+    
+    private var socialMediaItems: [SocialMediaItem] = [
+        .init(platform: "Instagram", iconName: "InstagramIcon", username: "@kitobz.tj"),
+        .init(platform: "Facebook", iconName: "FacebookIcon", username: "@kitobz"),
+        .init(platform: "Telegram", iconName: "TelegramIcon", username: "@kitobz"),
+        .init(platform: "Viber", iconName: "ViberIcon", username: "+992903022298")
+    ]
 
     // MARK: - Lifecycle
     override func viewDidLoad() {
@@ -147,7 +167,6 @@ final class HomeViewController: UIViewController {
         bar?.tintColor = UIColor.label
     }
 
-
     private func updateThemeToggleIcon(on button: UIButton? = nil) {
         let isDark = traitCollection.userInterfaceStyle == .dark
         let symbolName = isDark ? "sun.max" : "moon"
@@ -177,7 +196,17 @@ final class HomeViewController: UIViewController {
 
     // MARK: - Sections Layout
     private func setupSections() {
-        let sections = [bannerSection, bestBooksSection, recommendedSection, roundCardSection, discountSection, quoteSection]
+        let sections: [UIView] = [
+            bannerSection,
+            bestBooksSection,
+            recommendedSection,
+            roundCardSection,
+            socialMediaSection,
+            discountSection,
+            reviewSection,
+            quoteSection
+        ]
+
         var lastView: UIView? = nil
         for section in sections {
             contentView.addSubview(section)
@@ -203,12 +232,13 @@ final class HomeViewController: UIViewController {
         bestBooksSection.setBooks(bestBooks)
         recommendedSection.setBooks(recommendedBooks)
         discountSection.setBooks(discountBooks)
-        quoteSection.setQuotes(quotes)
         roundCardSection.items = roundCardItems
+        socialMediaSection.items = socialMediaItems
+        reviewSection.items = reviews
+        quoteSection.setQuotes(quotes)
     }
 
     // MARK: - Actions
-
     @objc private func didTapThemeToggle() {
         let isDark = traitCollection.userInterfaceStyle == .dark
         overrideUserInterfaceStyle = isDark ? .light : .dark
@@ -221,7 +251,4 @@ final class HomeViewController: UIViewController {
             updateThemeToggleIcon(on: button)
         }
     }
-
-    }
-
-
+}

@@ -70,6 +70,6 @@ extension RoundCardSectionView: UICollectionViewDataSource, UICollectionViewDele
     func collectionView(_ collectionView: UICollectionView,
                         layout collectionViewLayout: UICollectionViewLayout,
                         sizeForItemAt indexPath: IndexPath) -> CGSize {
-        CGSize(width: 96, height: 122) // круг 96 + подпись
+        CGSize(width: 96, height: 122)
     }
 }
