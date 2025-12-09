@@ -55,7 +55,8 @@ final class BookDetailView: UIView {
 
     let descriptionLabel: UILabel = {
         let l = UILabel()
-        l.font = .systemFont(ofSize: 15)
+        let font = UIFont.systemFont(ofSize: 15)
+        l.font = font
         l.numberOfLines = 0
         return l
     }()
@@ -63,23 +64,50 @@ final class BookDetailView: UIView {
     // Buttons exposed so controller can bind actions
     let favoriteButton: UIButton = {
         let b = UIButton(type: .system)
-        b.setTitle("Добавить в избранное", for: .normal)
-        b.titleLabel?.font = .systemFont(ofSize: 16, weight: .semibold)
-        b.layer.cornerRadius = 10
-        b.layer.borderWidth = 1
-        b.layer.borderColor = UIColor.separator.cgColor
-        b.contentEdgeInsets = UIEdgeInsets(top: 12, left: 14, bottom: 12, right: 14)
+        if #available(iOS 15.0, *) {
+            var config = UIButton.Configuration.bordered()
+            config.title = "Добавить в избранное"
+            config.cornerStyle = .large
+            config.contentInsets = NSDirectionalEdgeInsets(top: 12, leading: 14, bottom: 12, trailing: 14)
+            // Mimic border color
+            b.configuration = config
+            b.configurationUpdateHandler = { button in
+                button.configuration?.baseForegroundColor = .label
+            }
+            b.layer.borderWidth = 1
+            b.layer.cornerRadius = 10
+            b.layer.borderColor = UIColor.separator.cgColor
+            b.titleLabel?.font = .systemFont(ofSize: 16, weight: .semibold)
+        } else {
+            b.setTitle("Добавить в избранное", for: .normal)
+            b.titleLabel?.font = .systemFont(ofSize: 16, weight: .semibold)
+            b.layer.cornerRadius = 10
+            b.layer.borderWidth = 1
+            b.layer.borderColor = UIColor.separator.cgColor
+            b.contentEdgeInsets = UIEdgeInsets(top: 12, left: 14, bottom: 12, right: 14)
+        }
         return b
     }()
 
     let readSampleButton: UIButton = {
         let b = UIButton(type: .system)
-        b.setTitle("Читать отрывок", for: .normal)
-        b.titleLabel?.font = .systemFont(ofSize: 16, weight: .semibold)
-        b.layer.cornerRadius = 10
-        b.backgroundColor = .systemBlue
-        b.tintColor = .white
-        b.contentEdgeInsets = UIEdgeInsets(top: 12, left: 14, bottom: 12, right: 14)
+        if #available(iOS 15.0, *) {
+            var config = UIButton.Configuration.filled()
+            config.title = "Читать отрывок"
+            config.cornerStyle = .large
+            config.baseBackgroundColor = .systemBlue
+            config.baseForegroundColor = .white
+            config.contentInsets = NSDirectionalEdgeInsets(top: 12, leading: 14, bottom: 12, trailing: 14)
+            b.configuration = config
+            b.titleLabel?.font = .systemFont(ofSize: 16, weight: .semibold)
+        } else {
+            b.setTitle("Читать отрывок", for: .normal)
+            b.titleLabel?.font = .systemFont(ofSize: 16, weight: .semibold)
+            b.layer.cornerRadius = 10
+            b.backgroundColor = .systemBlue
+            b.tintColor = .white
+            b.contentEdgeInsets = UIEdgeInsets(top: 12, left: 14, bottom: 12, right: 14)
+        }
         return b
     }()
 
@@ -151,13 +179,11 @@ final class BookDetailView: UIView {
             make.leading.greaterThanOrEqualTo(ratingLabel.snp.trailing).offset(8)
         }
 
-
         descriptionLabel.snp.makeConstraints { make in
             make.top.equalTo(ratingLabel.snp.bottom).offset(12)
             make.leading.trailing.equalToSuperview().inset(16)
         }
 
- 
         favoriteButton.snp.makeConstraints { make in
             make.top.equalTo(descriptionLabel.snp.bottom).offset(20)
             make.leading.equalToSuperview().inset(16)

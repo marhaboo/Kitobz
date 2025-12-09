@@ -28,7 +28,7 @@ struct StoriesProvider {
                 id: "delivery",
                 title: "Доставка",
                 coverImageName: "Delivery",
-                images: ["story_delivery_1", "story_delivery_2"],
+                images: ["Delivery", "story_delivery_2"],
                 link: URL(string: "https://kitobz.example.com/delivery"),
                 isSeen: false
             ),
@@ -36,7 +36,7 @@ struct StoriesProvider {
                 id: "installment",
                 title: "Рассрочка",
                 coverImageName: "Installment",
-                images: ["story_installment_1, story_installment_2"],
+                images: ["Installment", "story_installment_2"],
                 link: URL(string: "https://kitobz.example.com/installment"),
                 isSeen: false
             ),
@@ -44,7 +44,7 @@ struct StoriesProvider {
                 id: "social",
                 title: "Соц. сети",
                 coverImageName: "SocialMedia",
-                images: ["story_social_1", "story_social_2", "story_social_3", "story_social_4"],
+                images: ["SocialMedia", "story_social_2", "story_social_3", "story_social_4"],
                 link: URL(string: "https://instagram.com/yourpage"),
                 isSeen: false
             ),
@@ -52,7 +52,7 @@ struct StoriesProvider {
                 id: "giftcards",
                 title: "Гифт карты",
                 coverImageName: "GiftCards",
-                images: ["story_gift_1"],
+                images: ["GiftCards"],
                 link: URL(string: "https://kitobz.example.com/giftcards"),
                 isSeen: false
             ),
@@ -60,7 +60,7 @@ struct StoriesProvider {
                 id: "reviews",
                 title: "Отзывы",
                 coverImageName: "Reviews",
-                images: ["story_reviews_1"],
+                images: ["Reviews"],
                 link: URL(string: "https://kitobz.example.com/reviews"),
                 isSeen: false
             ),
@@ -68,7 +68,7 @@ struct StoriesProvider {
                 id: "about",
                 title: "О нас",
                 coverImageName: "AboutUs",
-                images: ["story_about_1"],
+                images: ["AboutUs"],
                 link: URL(string: "https://kitobz.example.com/about"),
                 isSeen: false
             ),

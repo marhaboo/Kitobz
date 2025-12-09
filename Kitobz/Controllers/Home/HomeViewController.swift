@@ -206,18 +206,33 @@ final class HomeViewController: UIViewController {
 
     private func setupStoriesTapHandler() {
         roundCardSection.onItemSelected = { [weak self] index in
-            guard let self = self else { return }
-            guard index >= 0, index < self.stories.count else { return }
-            let story = self.stories[index]
-            let viewer = StoriesViewerViewController(story: story)
-            viewer.onFinished = { [weak self] in
-                guard let self = self else { return }
-                self.stories[index].isSeen = true
-                self.roundCardSection.seenFlags[index] = true
-                self.roundCardSection.reloadItem(at: index)
-            }
-            self.present(viewer, animated: true)
+            self?.presentStory(at: index)
         }
+    }
+
+    private func presentStory(at index: Int) {
+        guard index >= 0, index < stories.count else { return }
+        let story = stories[index]
+        let viewer = StoriesViewerViewController(story: story)
+
+        // mark seen on finish of this card
+        viewer.onFinished = { [weak self] in
+            guard let self = self else { return }
+            self.stories[index].isSeen = true
+            self.roundCardSection.seenFlags[index] = true
+            self.roundCardSection.reloadItem(at: index)
+        }
+
+        // request to show next card when this story’s images are done
+        viewer.onRequestNextStory = { [weak self] in
+            guard let self = self else { return }
+            let nextIndex = index + 1
+            if nextIndex < self.stories.count {
+                self.presentStory(at: nextIndex)
+            }
+        }
+
+        present(viewer, animated: true)
     }
 
     private func openBookDetail(_ book: Book) {
@@ -233,4 +248,3 @@ final class HomeViewController: UIViewController {
         applyAppearanceForCurrentStyle()
     }
 }
-
