@@ -12,6 +12,7 @@ struct CartItem {
     let title: String
     let author: String
     let price: Int
+    var isSelected: Bool = false
 }
 
 class CartViewController: UIViewController {
@@ -56,10 +57,18 @@ class CartViewController: UIViewController {
         super.viewDidLoad()
         view.backgroundColor = .white
         
+        navigationItem.title = "Корзина"
+        navigationController?.navigationBar.titleTextAttributes = [
+            .font: UIFont.boldSystemFont(ofSize: 24)
+        ]
+        
         tableView.dataSource = self
+        tableView.delegate = self
         
         setupLayout()
         updateTotal()
+        
+        checkoutButton.addTarget(self, action: #selector(didTapCheckout), for: .touchUpInside)
     }
     
     private func setupLayout() {
@@ -94,12 +103,21 @@ class CartViewController: UIViewController {
     }
     
     private func updateTotal() {
-        let sum = cartItems.reduce(0) { $0 + $1.price }
+        let sum = cartItems.reduce(0) { $0 + ($1.isSelected ? $1.price : 0) }
         totalLabel.text = "Итого: \(sum) сомони"
+    }
+    
+    @objc private func didTapCheckout() {
+        // Отбираем только выбранные книги
+        let checkoutVC = CheckoutViewController()
+        checkoutVC.selectedItems = cartItems.filter { $0.isSelected }
+        
+        // Переходим на экран Checkout
+        navigationController?.pushViewController(checkoutVC, animated: true)
     }
 }
 
-extension CartViewController: UITableViewDataSource {
+extension CartViewController: UITableViewDataSource, UITableViewDelegate {
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return cartItems.count
@@ -109,9 +127,48 @@ extension CartViewController: UITableViewDataSource {
         let cell = tableView.dequeueReusableCell(withIdentifier: "CartCell", for: indexPath) as! CartCell
         
         let item = cartItems[indexPath.row]
-        cell.configure(bookName: item.title, author: item.author, price: item.price)
+        cell.configure(
+            bookName: item.title,
+            author: item.author,
+            price: item.price,
+            isSelected: item.isSelected
+        )
+        
+        // ВАЖНО: правильный callback (без indexPath из прошлого)
+        cell.onCheckTap = { [weak self, weak cell] in
+            guard let self = self else { return }
+            guard let cell = cell else { return }
+            
+            // Получаем актуальный indexPath ячейки
+            guard let tappedIndexPath = tableView.indexPath(for: cell) else { return }
+            
+            // Переключаем выбор
+            self.cartItems[tappedIndexPath.row].isSelected.toggle()
+            
+            // Обновляем сумму
+            self.updateTotal()
+            
+            // Обновляем UI ячейки
+            self.tableView.reloadRows(at: [tappedIndexPath], with: .none)
+        }
         
         return cell
+    }
+
+    
+    // ✅ Свайп для удаления
+    func tableView(_ tableView: UITableView,
+                   trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath)
+    -> UISwipeActionsConfiguration? {
+        
+        let deleteAction = UIContextualAction(style: .destructive, title: "Удалить") { _, _, finish in
+            self.cartItems.remove(at: indexPath.row)
+            tableView.deleteRows(at: [indexPath], with: .automatic)
+            self.updateTotal()
+            finish(true)
+        }
+        
+        return UISwipeActionsConfiguration(actions: [deleteAction])
     }
 }
 

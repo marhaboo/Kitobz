@@ -10,6 +10,14 @@ import SnapKit
 
 class CartCell: UITableViewCell {
     
+    // Чекмарка-кружок
+    private let checkButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.tintColor = .red
+        button.setImage(UIImage(systemName: "circle"), for: .normal)
+        return button
+    }()
+    
     private let bookImageView: UIImageView = {
         let image = UIImageView()
         image.image = UIImage(named: "book1")
@@ -19,75 +27,61 @@ class CartCell: UITableViewCell {
         return image
     }()
     
-    private let titleLabel: UILabel = {
-        let label = UILabel()
-        label.font = .boldSystemFont(ofSize: 16)
-        label.numberOfLines = 1
-        return label
-    }()
+    private let titleLabel = UILabel()
+    private let authorLabel = UILabel()
+    private let priceLabel = UILabel()
     
-    private let authorLabel: UILabel = {
-        let label = UILabel()
-        label.font = .systemFont(ofSize: 14)
-        label.textColor = .darkGray
-        return label
-    }()
-    
-    private let priceLabel: UILabel = {
-        let label = UILabel()
-        label.font = .systemFont(ofSize: 15, weight: .medium)
-        return label
-    }()
-    
-    private let deleteButton: UIButton = {
-        let button = UIButton(type: .system)
-        let icon = UIImage(systemName: "trash")
-        button.setImage(icon, for: .normal)
-        button.tintColor = .red
-        return button
-    }()
-    
-    // MARK: - Init
+    // callback
+    var onCheckTap: (() -> Void)?
     
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         setupLayout()
+        
+        checkButton.addTarget(self, action: #selector(checkTapped), for: .touchUpInside)
+    }
+    
+    @objc private func checkTapped() {
+        onCheckTap?()
     }
     
     required init?(coder: NSCoder) { fatalError() }
     
-    // MARK: - Layout
-    
     private func setupLayout() {
         
+        contentView.addSubview(checkButton)
         contentView.addSubview(bookImageView)
         contentView.addSubview(titleLabel)
         contentView.addSubview(authorLabel)
         contentView.addSubview(priceLabel)
-        contentView.addSubview(deleteButton)
+        
+        checkButton.snp.makeConstraints { make in
+            make.left.equalToSuperview().offset(15)
+            make.centerY.equalToSuperview()
+            make.width.height.equalTo(28)
+        }
         
         bookImageView.snp.makeConstraints { make in
-            make.left.top.equalToSuperview().offset(15)
+            make.left.equalTo(checkButton.snp.right).offset(12)
+            make.top.equalToSuperview().offset(15)
             make.width.height.equalTo(70)
             make.bottom.equalToSuperview().inset(15)
         }
         
-        deleteButton.snp.makeConstraints { make in
-            make.centerY.equalToSuperview()
-            make.right.equalToSuperview().inset(15)
-            make.width.height.equalTo(25)
-        }
+        titleLabel.font = .boldSystemFont(ofSize: 16)
+        authorLabel.font = .systemFont(ofSize: 14)
+        authorLabel.textColor = .darkGray
+        priceLabel.font = .systemFont(ofSize: 15, weight: .medium)
         
         titleLabel.snp.makeConstraints { make in
             make.top.equalTo(bookImageView.snp.top)
             make.left.equalTo(bookImageView.snp.right).offset(15)
-            make.right.equalTo(deleteButton.snp.left).offset(-10)
+            make.right.equalToSuperview().inset(15)
         }
         
         authorLabel.snp.makeConstraints { make in
             make.top.equalTo(titleLabel.snp.bottom).offset(3)
             make.left.equalTo(titleLabel)
-            make.right.equalTo(titleLabel)
         }
         
         priceLabel.snp.makeConstraints { make in
@@ -96,12 +90,13 @@ class CartCell: UITableViewCell {
         }
     }
     
-    // MARK: - Configure
-    
-    func configure(bookName: String, author: String, price: Int) {
+    func configure(bookName: String, author: String, price: Int, isSelected: Bool) {
         titleLabel.text = bookName
         authorLabel.text = author
         priceLabel.text = "\(price) сомони"
+        
+        let icon = isSelected ? "checkmark.circle.fill" : "circle"
+        checkButton.setImage(UIImage(systemName: icon), for: .normal)
     }
 }
 
