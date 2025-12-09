@@ -39,7 +39,7 @@ final class FavoritesViewController: UIViewController {
             setupTable()
                   UserDefaults.standard.removeObject(forKey: "favorites_books_v1")
 
-        // Добавляем новые книги
+        
         let book1 = Book(id: "1", title: "Гарри Поттер и философский камень", author: "Дж. К. Роулинг", price: 12 * 11, imageName: "HarryPotter1")
         let book2 = Book(id: "2", title: "Властелин колец: Братство кольца", author: "Дж. Р. Р. Толкин", price: 15 * 11, imageName: "LordOfTheRings1")
         let book3 = Book(id: "3", title: "Голодные игры", author: "Сьюзен Коллинз", price: 10 * 11, imageName: "HungerGames1")
