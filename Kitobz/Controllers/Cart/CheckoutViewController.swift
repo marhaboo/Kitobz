@@ -90,7 +90,7 @@ class CheckoutViewController: UIViewController {
     private let confirmButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitle("Подтвердить заказ", for: .normal)
-        button.backgroundColor = .red
+        button.backgroundColor = UIColor(named: "AccentColor")
         button.tintColor = .white
         button.layer.cornerRadius = 10
         button.titleLabel?.font = .boldSystemFont(ofSize: 18)
