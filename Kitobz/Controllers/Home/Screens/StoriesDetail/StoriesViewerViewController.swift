@@ -65,19 +65,12 @@ final class StoriesViewerViewController: UIViewController {
 
     // MARK: - UI Setup
     private func setupUI() {
-        view.addSubview(imageContainer)
-        imageContainer.addSubview(imageView)
-
-        imageView.contentMode = .scaleAspectFill
-        imageView.clipsToBounds = true
-        imageView.snp.makeConstraints { make in
-            make.edges.equalToSuperview()
-        }
-
+        // Progress Stack
         progressStack.axis = .horizontal
         progressStack.spacing = 6
         progressStack.distribution = .fillEqually
         view.addSubview(progressStack)
+
         progressStack.snp.makeConstraints { make in
             make.top.equalTo(view.safeAreaLayoutGuide.snp.top).offset(8)
             make.leading.equalToSuperview().offset(12)
@@ -85,18 +78,19 @@ final class StoriesViewerViewController: UIViewController {
             make.height.equalTo(4)
         }
 
+        // Close Button
         closeButton.setImage(UIImage(systemName: "xmark"), for: .normal)
         closeButton.tintColor = .white
-        closeButton.backgroundColor = UIColor.black.withAlphaComponent(0.5)
-        closeButton.layer.cornerRadius = 16
         closeButton.addTarget(self, action: #selector(closeTapped), for: .touchUpInside)
         view.addSubview(closeButton)
+
         closeButton.snp.makeConstraints { make in
-            make.top.equalTo(view.safeAreaLayoutGuide.snp.top).offset(16)
+            make.top.equalTo(view.safeAreaLayoutGuide.snp.top).offset(32)
             make.trailing.equalToSuperview().offset(-16)
-            make.width.height.equalTo(32)
+            make.width.height.equalTo(24)
         }
 
+        // CTA Button
         if #available(iOS 15.0, *) {
             var conf = UIButton.Configuration.filled()
             conf.title = "ПОСЕТИТЬ ССЫЛКУ"
@@ -111,18 +105,40 @@ final class StoriesViewerViewController: UIViewController {
             ctaButton.layer.cornerRadius = 12
             ctaButton.contentEdgeInsets = UIEdgeInsets(top: 12, left: 16, bottom: 12, right: 16)
         }
-
         ctaButton.isHidden = (story.link == nil)
         ctaButton.addTarget(self, action: #selector(ctaTapped), for: .touchUpInside)
         view.addSubview(ctaButton)
+
         ctaButton.snp.makeConstraints { make in
             make.leading.equalToSuperview().offset(20)
             make.trailing.equalToSuperview().offset(-20)
             make.bottom.equalTo(view.safeAreaLayoutGuide.snp.bottom).offset(-32)
             make.height.equalTo(52)
         }
+
+        // Image Container
+        view.addSubview(imageContainer)
+
+        // ImageView
+        imageContainer.addSubview(imageView)
+        imageView.contentMode = .scaleAspectFill
+        imageView.clipsToBounds = true
+        imageView.layer.cornerRadius = 0
+        imageView.snp.makeConstraints { make in
+            make.edges.equalToSuperview()
+        }
+
+        // Bring buttons to front and adjust final close button constraints
+        view.bringSubviewToFront(ctaButton)
+        view.bringSubviewToFront(closeButton)
+        closeButton.snp.remakeConstraints { make in
+            make.top.equalTo(view.safeAreaLayoutGuide.snp.top).offset(42)
+            make.trailing.equalToSuperview().offset(-8)
+            make.width.height.equalTo(32)
+        }
     }
 
+    // MARK: - Progress Bars
     private func setupProgressBars() {
         progressBars.removeAll()
         progressStack.arrangedSubviews.forEach { $0.removeFromSuperview() }
@@ -140,40 +156,47 @@ final class StoriesViewerViewController: UIViewController {
         }
     }
 
-    // MARK: - Load Image/GIF
+    // MARK: - Media (Image or GIF from assets)
     private func showMedia(at index: Int, animated: Bool) {
         guard !story.images.isEmpty else { return }
-
         let idx = max(0, min(index, story.images.count - 1))
         currentIndex = idx
         let name = story.images[idx]
 
-        // --------------- GIF FROM ASSETS SUPPORT ---------------
+        // Clear any previous GIF from SwiftyGif
         imageView.clear()
 
-        if let dataAsset = NSDataAsset(name: name) {
-            if let gif = try? UIImage(gifData: dataAsset.data) {
-                imageView.setGifImage(gif, loopCount: -1)
-            }
+        // Try to load a GIF from an asset catalog data asset first
+        if let dataAsset = NSDataAsset(name: name),
+           let gif = try? UIImage(gifData: dataAsset.data) {
+            imageView.setGifImage(gif, loopCount: -1)
         } else if let image = UIImage(named: name) {
+            // Fallback to a normal image from asset catalog
             imageView.image = image
         } else {
-            print("⚠️ Asset not found: \(name)")
+            // Fallback to a loose file "name.gif" in the bundle (optional)
+            if let path = Bundle.main.path(forResource: name, ofType: "gif"),
+               let data = try? Data(contentsOf: URL(fileURLWithPath: path)),
+               let gif = try? UIImage(gifData: data) {
+                imageView.setGifImage(gif, loopCount: -1)
+            } else {
+                print("⚠️ Asset not found: \(name) (image or gif)")
+                imageView.image = nil
+            }
         }
-        // --------------------------------------------------------
 
-        // Layout logic
+        // First image centered and contained, others fill
         if idx == 0 {
             imageView.contentMode = .scaleAspectFit
             imageView.backgroundColor = .black
-            imageView.clipsToBounds = false
+            imageView.clipsToBounds = true
 
             imageContainer.snp.remakeConstraints { make in
                 make.center.equalToSuperview()
                 make.leading.greaterThanOrEqualTo(view).offset(16)
                 make.trailing.lessThanOrEqualTo(view).offset(-16)
-                make.top.greaterThanOrEqualTo(view.safeAreaLayoutGuide.snp.top).offset(60)
-                make.bottom.lessThanOrEqualTo(view.safeAreaLayoutGuide.snp.bottom).offset(-100)
+                make.top.greaterThanOrEqualTo(view.safeAreaLayoutGuide.snp.top).offset(32)
+                make.bottom.lessThanOrEqualTo(view.safeAreaLayoutGuide.snp.bottom).offset(-32)
             }
         } else {
             imageView.contentMode = .scaleAspectFill
@@ -181,9 +204,9 @@ final class StoriesViewerViewController: UIViewController {
             imageView.clipsToBounds = true
 
             imageContainer.snp.remakeConstraints { make in
-                make.top.equalTo(view.safeAreaLayoutGuide.snp.top).offset(60)
+                make.top.equalTo(view.safeAreaLayoutGuide.snp.top).offset(32)
                 make.leading.trailing.equalToSuperview()
-                make.bottom.equalTo(view.safeAreaLayoutGuide.snp.bottom).offset(-100)
+                make.bottom.equalTo(view.safeAreaLayoutGuide.snp.bottom).offset(-16)
             }
         }
 
@@ -195,8 +218,12 @@ final class StoriesViewerViewController: UIViewController {
             view.layoutIfNeeded()
         }
 
+        ctaButton.isHidden = (story.link == nil)
         updateProgressBars()
+        bringControlsToFront()
+    }
 
+    private func bringControlsToFront() {
         view.bringSubviewToFront(progressStack)
         view.bringSubviewToFront(closeButton)
         view.bringSubviewToFront(ctaButton)
@@ -204,11 +231,11 @@ final class StoriesViewerViewController: UIViewController {
 
     private func updateProgressBars() {
         for (i, bar) in progressBars.enumerated() {
-            bar.progress = i < currentIndex ? 1 : 0
+            bar.progress = (i < currentIndex) ? 1 : 0
         }
     }
 
-    // MARK: - Timer
+    // MARK: - Timer Logic
     private func startTimer() {
         stopTimer()
         guard !story.images.isEmpty else { return }
@@ -223,6 +250,7 @@ final class StoriesViewerViewController: UIViewController {
                 self.advance()
             }
         }
+
         if let timer { RunLoop.main.add(timer, forMode: .common) }
     }
 
@@ -254,6 +282,8 @@ final class StoriesViewerViewController: UIViewController {
 
     // MARK: - Gestures
     private func setupGestures() {
+        let leftTap = UITapGestureRecognizer(target: self, action: #selector(didTapLeft))
+        let rightTap = UITapGestureRecognizer(target: self, action: #selector(didTapRight))
         let holdGesture = UILongPressGestureRecognizer(target: self, action: #selector(handleHold(_:)))
         holdGesture.minimumPressDuration = 0.1
         view.addGestureRecognizer(holdGesture)
@@ -262,6 +292,7 @@ final class StoriesViewerViewController: UIViewController {
         let rightView = UIView()
         leftView.backgroundColor = .clear
         rightView.backgroundColor = .clear
+
         view.addSubview(leftView)
         view.addSubview(rightView)
 
@@ -269,17 +300,14 @@ final class StoriesViewerViewController: UIViewController {
             make.top.bottom.left.equalToSuperview()
             make.width.equalToSuperview().multipliedBy(0.5)
         }
+
         rightView.snp.makeConstraints { make in
             make.top.bottom.right.equalToSuperview()
             make.width.equalToSuperview().multipliedBy(0.5)
         }
 
-        leftView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(didTapLeft)))
-        rightView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(didTapRight)))
-
-        view.sendSubviewToBack(rightView)
-        view.sendSubviewToBack(leftView)
-        view.sendSubviewToBack(imageContainer)
+        leftView.addGestureRecognizer(leftTap)
+        rightView.addGestureRecognizer(rightTap)
     }
 
     // MARK: - Actions
@@ -311,12 +339,9 @@ final class StoriesViewerViewController: UIViewController {
 
     @objc private func handleHold(_ gesture: UILongPressGestureRecognizer) {
         switch gesture.state {
-        case .began:
-            stopTimer()
-        case .ended, .cancelled:
-            startTimer()
-        default:
-            break
+        case .began: stopTimer()
+        case .ended, .cancelled: startTimer()
+        default: break
         }
     }
 }

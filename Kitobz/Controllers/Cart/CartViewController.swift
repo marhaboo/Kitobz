@@ -108,11 +108,8 @@ class CartViewController: UIViewController {
     }
     
     @objc private func didTapCheckout() {
-        // Отбираем только выбранные книги
         let checkoutVC = CheckoutViewController()
         checkoutVC.selectedItems = cartItems.filter { $0.isSelected }
-        
-        // Переходим на экран Checkout
         navigationController?.pushViewController(checkoutVC, animated: true)
     }
 }

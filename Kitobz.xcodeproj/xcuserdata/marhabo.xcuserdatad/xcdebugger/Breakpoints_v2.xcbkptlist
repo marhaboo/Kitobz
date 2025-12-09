@@ -3,4 +3,84 @@
    uuid = "16D2FD20-6DB4-49C8-9128-4F29F50328A3"
    type = "1"
    version = "2.0">
+   <Breakpoints>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "A70548E8-03EA-4464-ACB0-00BA4FAE46E9"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "Kitobz/Controllers/Home/Screens/StoriesDetail/StoriesViewerViewController.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "192"
+            endingLineNumber = "192"
+            landmarkName = "showMedia(at:animated:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "D96DF751-2F49-4E01-A112-B0E08C02463C"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "Kitobz/Controllers/Home/Screens/StoriesDetail/StoriesViewerViewController.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "195"
+            endingLineNumber = "195"
+            landmarkName = "showMedia(at:animated:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "5FAF1557-BC98-448C-84F8-03FA28B553D7"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "Kitobz/Controllers/Home/Screens/StoriesDetail/StoriesViewerViewController.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "193"
+            endingLineNumber = "193"
+            landmarkName = "showMedia(at:animated:)"
+            landmarkType = "7">
+            <Locations>
+               <Location
+                  uuid = "5FAF1557-BC98-448C-84F8-03FA28B553D7 - 69c48cb57be5bf4f"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "Kitobz.StoriesViewerViewController.showMedia(at: Swift.Int, animated: Swift.Bool) -&gt; ()"
+                  moduleName = "Kitobz.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/marhabo/Desktop/Kitobz/Kitobz/Controllers/Home/Screens/StoriesDetail/StoriesViewerViewController.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "194"
+                  endingLineNumber = "194">
+               </Location>
+               <Location
+                  uuid = "5FAF1557-BC98-448C-84F8-03FA28B553D7 - 65d83837a7d15763"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "closure #1 (SnapKit.ConstraintMaker) -&gt; () in Kitobz.StoriesViewerViewController.showMedia(at: Swift.Int, animated: Swift.Bool) -&gt; ()"
+                  moduleName = "Kitobz.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/marhabo/Desktop/Kitobz/Kitobz/Controllers/Home/Screens/StoriesDetail/StoriesViewerViewController.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "195"
+                  endingLineNumber = "195">
+               </Location>
+            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
+   </Breakpoints>
 </Bucket>
