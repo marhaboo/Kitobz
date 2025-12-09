@@ -1,27 +1,14 @@
-//
-//  FavoritesViewController.swift
-//  Kitobz
-//
-//  Created by Madina on 09/12/25.
-//
-
 import UIKit
 
 final class FavoritesViewController: UIViewController {
 
     private var favorites: [Book] = []
 
-    private let tableView: UITableView = {
-        let tv = UITableView(frame: .zero, style: .plain)
-        tv.translatesAutoresizingMaskIntoConstraints = false
-        tv.separatorStyle = .none
-        return tv
-    }()
+    private let tableView = UITableView()
 
-    // MARK: - Пустой лейбл
-    private let emptyView: UILabel = {
+    private let emptyLabel: UILabel = {
         let label = UILabel()
-        label.text = "У вас пока нет избранных\nДобавьте книги, нажав ❤️"
+        label.text = "У вас пока нет избранных\nДобавьте книги"
         label.numberOfLines = 0
         label.textAlignment = .center
         label.textColor = .secondaryLabel
@@ -31,78 +18,53 @@ final class FavoritesViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        title = "Избранное"
         view.backgroundColor = .systemBackground
-        title = "Избранные"
 
-       
-
-            setupTable()
-                  UserDefaults.standard.removeObject(forKey: "favorites_books_v1")
-
+        setupTableView()
         
+        
+       
+        UserDefaults.standard.removeObject(forKey: "favorites_books_v1")
+
         let book1 = Book(id: "1", title: "Гарри Поттер и философский камень", author: "Дж. К. Роулинг", price: 12 * 11, imageName: "HarryPotter1")
         let book2 = Book(id: "2", title: "Властелин колец: Братство кольца", author: "Дж. Р. Р. Толкин", price: 15 * 11, imageName: "LordOfTheRings1")
         let book3 = Book(id: "3", title: "Голодные игры", author: "Сьюзен Коллинз", price: 10 * 11, imageName: "HungerGames1")
         let book4 = Book(id: "4", title: "Сумерки", author: "Стефани Майер", price: 11 * 11, imageName: "Twilight1")
         let book5 = Book(id: "5", title: "Дневник слабака", author: "Джефф Кинни", price: 8 * 11, imageName: "DiaryOfAWimpyKid")
 
-      let books = [book1, book2, book3, book4, book5]
+        let books = [book1, book2, book3, book4, book5]
 
-      for book in books {
+        for book in books {
             FavoritesManager.shared.add(book)
         }
 
-            loadFavorites()
-       
-      
+        
+        loadFavorites()
     }
 
-    // MARK: - Настройка таблицы
-    private func setupTable() {
-        view.addSubview(tableView)
-        tableView.register(FavoriteCell.self, forCellReuseIdentifier: FavoriteCell.reuseId)
+    private func setupTableView() {
+        tableView.frame = view.bounds
         tableView.dataSource = self
         tableView.delegate = self
-
-        NSLayoutConstraint.activate([
-            tableView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
-        ])
+        tableView.register(FavoriteCell.self, forCellReuseIdentifier: FavoriteCell.reuseId)
+        tableView.rowHeight = 110
+        view.addSubview(tableView)
     }
 
-    // MARK: - Загрузка избранного
     private func loadFavorites() {
         favorites = FavoritesManager.shared.loadFavorites()
         updateUI()
     }
 
-    // MARK: - Обновление UI
     private func updateUI() {
         tableView.reloadData()
-
-        if favorites.isEmpty {
-            // Создаем контейнер для центрирования лейбла
-            let container = UIView(frame: tableView.bounds)
-            container.addSubview(emptyView)
-
-            NSLayoutConstraint.activate([
-                emptyView.centerXAnchor.constraint(equalTo: container.centerXAnchor),
-                emptyView.centerYAnchor.constraint(equalTo: container.centerYAnchor),
-                emptyView.leadingAnchor.constraint(greaterThanOrEqualTo: container.leadingAnchor, constant: 20),
-                emptyView.trailingAnchor.constraint(lessThanOrEqualTo: container.trailingAnchor, constant: -20)
-            ])
-
-            tableView.backgroundView = container
-        } else {
-            tableView.backgroundView = nil
-        }
+        tableView.backgroundView = favorites.isEmpty ? emptyLabel : nil
     }
 }
 
-// MARK: - UITableViewDataSource & Delegate
-extension FavoritesViewController: UITableViewDataSource, UITableViewDelegate {
+// MARK: - UITableViewDataSource
+extension FavoritesViewController: UITableViewDataSource {
 
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return favorites.count
@@ -115,7 +77,40 @@ extension FavoritesViewController: UITableViewDataSource, UITableViewDelegate {
         }
 
         let book = favorites[indexPath.row]
-        cell.configure(with: book, isFavorite: true)
+        cell.configure(with: book)
+        cell.delegate = self
+
         return cell
+    }
+}
+
+// MARK: - UITableViewDelegate
+extension FavoritesViewController: UITableViewDelegate {
+
+    
+    func tableView(_ tableView: UITableView,
+                   trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+
+        let deleteAction = UIContextualAction(style: .destructive, title: "Удалить") { action, view, completion in
+            let book = self.favorites[indexPath.row]
+            FavoritesManager.shared.remove(book)
+            self.favorites.remove(at: indexPath.row)
+            tableView.deleteRows(at: [indexPath], with: .automatic)
+            self.updateUI()
+            completion(true)
+        }
+
+        return UISwipeActionsConfiguration(actions: [deleteAction])
+    }
+}
+
+// MARK: - FavoriteCellDelegate
+extension FavoritesViewController: FavoriteCellDelegate {
+
+    func favoriteCellDidTapCart(_ cell: FavoriteCell) {
+        
+        if let tabBar = self.tabBarController {
+            tabBar.selectedIndex = 2 
+        }
     }
 }
