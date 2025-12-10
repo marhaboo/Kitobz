@@ -86,8 +86,6 @@ extension FavoritesViewController: UITableViewDataSource {
 
 // MARK: - UITableViewDelegate
 extension FavoritesViewController: UITableViewDelegate {
-
-    
     func tableView(_ tableView: UITableView,
                    trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
 
