@@ -11,7 +11,10 @@ class SearchViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+<<<<<<< HEAD
         view.backgroundColor = UIColor(named: "Background")
+=======
+>>>>>>> madina-favorites
 
         // Do any additional setup after loading the view.
     }

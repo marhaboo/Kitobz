@@ -1,7 +1,10 @@
 {
   "images" : [
     {
+<<<<<<< HEAD
       "filename" : "f35239ac-c196-499b-9c18-1854aa7b5590.png",
+=======
+>>>>>>> madina-favorites
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"
@@ -13,7 +16,10 @@
           "value" : "dark"
         }
       ],
+<<<<<<< HEAD
       "filename" : "f35239ac-c196-499b-9c18-1854aa7b5590 1.png",
+=======
+>>>>>>> madina-favorites
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"
@@ -25,7 +31,10 @@
           "value" : "tinted"
         }
       ],
+<<<<<<< HEAD
       "filename" : "f35239ac-c196-499b-9c18-1854aa7b5590 2.png",
+=======
+>>>>>>> madina-favorites
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"
