@@ -68,6 +68,7 @@ final class RatingView: UIView {
 
         countLabel.font = .systemFont(ofSize: 10)
         countLabel.textColor = .secondaryLabel
+        countLabel.textAlignment = .center
 
         vStack.addArrangedSubview(hStack)
         vStack.addArrangedSubview(countLabel)
@@ -85,6 +86,6 @@ final class RatingView: UIView {
         } else {
             ratingLabel.text = String(format: "%.1f", stars)
         }
-        countLabel.text = "\(count) оценок"
+        countLabel.text = "\(count)"
     }
 }

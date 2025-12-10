@@ -61,7 +61,6 @@ final class BookDetailView: UIView {
         return l
     }()
 
-    // Buttons exposed so controller can bind actions
     let favoriteButton: UIButton = {
         let b = UIButton(type: .system)
         if #available(iOS 15.0, *) {
@@ -69,7 +68,6 @@ final class BookDetailView: UIView {
             config.title = "Добавить в избранное"
             config.cornerStyle = .large
             config.contentInsets = NSDirectionalEdgeInsets(top: 12, leading: 14, bottom: 12, trailing: 14)
-            // Mimic border color
             b.configuration = config
             b.configurationUpdateHandler = { button in
                 button.configuration?.baseForegroundColor = .label

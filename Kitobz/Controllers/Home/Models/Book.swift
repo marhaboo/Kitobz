@@ -26,6 +26,7 @@ struct Book {
     let reviews: [ReviewItem]
     let quotes: [String]
     let otherBooksByAuthor: [Book]
+    var isFavorite: Bool
     
     init(coverImageName: String,
          title: String,
@@ -43,7 +44,8 @@ struct Book {
          publishYear: Int = 2020,
          reviews: [ReviewItem] = [],
          quotes: [String] = [],
-         otherBooksByAuthor: [Book] = []) {
+         otherBooksByAuthor: [Book] = [],
+         isFavorite: Bool = false) {
         
         self.coverImageName = coverImageName
         self.title = title
@@ -62,6 +64,6 @@ struct Book {
         self.reviews = reviews
         self.quotes = quotes
         self.otherBooksByAuthor = otherBooksByAuthor
-        
+        self.isFavorite = isFavorite
     }
 }

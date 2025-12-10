@@ -37,6 +37,9 @@ final class HomeViewController: UIViewController {
     // Stories
     private var stories: [Story] = []
 
+    // Keep a weak reference to the presented stories navigation controller
+    private weak var storiesNavController: UINavigationController?
+
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = UIColor(named: "Background")
@@ -221,6 +224,11 @@ final class HomeViewController: UIViewController {
             self.stories[index].isSeen = true
             self.roundCardSection.seenFlags[index] = true
             self.roundCardSection.reloadItem(at: index)
+
+            // If this viewer was the only one in the stack, dismiss the whole stories flow
+            if let nav = self.storiesNavController, nav.viewControllers.count <= 1 {
+                nav.dismiss(animated: true)
+            }
         }
 
         // request to show next card when this story’s images are done
@@ -228,11 +236,59 @@ final class HomeViewController: UIViewController {
             guard let self = self else { return }
             let nextIndex = index + 1
             if nextIndex < self.stories.count {
-                self.presentStory(at: nextIndex)
+                self.pushNextStory(at: nextIndex)
+            } else {
+                // No more stories, dismiss the flow
+                self.storiesNavController?.dismiss(animated: true)
             }
         }
 
-        present(viewer, animated: true)
+        if let nav = storiesNavController {
+            // Already inside stories flow: push for horizontal animation
+            nav.pushViewController(viewer, animated: true)
+        } else {
+            // Start stories flow: present a hidden-nav UINavigationController
+            let nav = UINavigationController(rootViewController: viewer)
+            nav.isNavigationBarHidden = true
+            nav.modalPresentationStyle = .fullScreen
+            self.storiesNavController = nav
+            present(nav, animated: true)
+        }
+    }
+
+    private func pushNextStory(at index: Int) {
+        guard index >= 0, index < stories.count else { return }
+        guard let nav = storiesNavController else {
+            // If nav is gone (unlikely), start fresh
+            presentStory(at: index)
+            return
+        }
+        let story = stories[index]
+        let viewer = StoriesViewerViewController(story: story)
+
+        viewer.onFinished = { [weak self] in
+            guard let self = self else { return }
+            self.stories[index].isSeen = true
+            self.roundCardSection.seenFlags[index] = true
+            self.roundCardSection.reloadItem(at: index)
+
+            // If this is the last controller in stack, dismiss flow
+            if nav.viewControllers.count <= 1 {
+                nav.dismiss(animated: true)
+            }
+        }
+
+        viewer.onRequestNextStory = { [weak self] in
+            guard let self = self else { return }
+            let nextIndex = index + 1
+            if nextIndex < self.stories.count {
+                self.pushNextStory(at: nextIndex)
+            } else {
+                nav.dismiss(animated: true)
+            }
+        }
+
+        nav.pushViewController(viewer, animated: true)
     }
 
     private func openBookDetail(_ book: Book) {
