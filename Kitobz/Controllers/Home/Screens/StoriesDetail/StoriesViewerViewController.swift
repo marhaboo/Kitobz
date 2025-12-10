@@ -7,7 +7,6 @@
 
 import UIKit
 import SnapKit
-import WebKit
 import SwiftyGif
 
 final class StoriesViewerViewController: UIViewController {
@@ -51,8 +50,8 @@ final class StoriesViewerViewController: UIViewController {
         view.backgroundColor = .black
 
         setupUI()
-        setupGestures()
         setupProgressBars()
+        setupGestures()
 
         showMedia(at: 0, animated: false)
         startTimer()
@@ -65,6 +64,7 @@ final class StoriesViewerViewController: UIViewController {
 
     // MARK: - UI Setup
     private func setupUI() {
+
         // Progress Stack
         progressStack.axis = .horizontal
         progressStack.spacing = 6
@@ -85,9 +85,9 @@ final class StoriesViewerViewController: UIViewController {
         view.addSubview(closeButton)
 
         closeButton.snp.makeConstraints { make in
-            make.top.equalTo(view.safeAreaLayoutGuide.snp.top).offset(32)
-            make.trailing.equalToSuperview().offset(-16)
-            make.width.height.equalTo(24)
+            make.top.equalTo(view.safeAreaLayoutGuide.snp.top).offset(42)
+            make.trailing.equalToSuperview().offset(-8)
+            make.width.height.equalTo(32)
         }
 
         // CTA Button
@@ -128,14 +128,10 @@ final class StoriesViewerViewController: UIViewController {
             make.edges.equalToSuperview()
         }
 
-        // Bring buttons to front and adjust final close button constraints
-        view.bringSubviewToFront(ctaButton)
+        // Make sure header controls are on top initially
+        view.bringSubviewToFront(progressStack)
         view.bringSubviewToFront(closeButton)
-        closeButton.snp.remakeConstraints { make in
-            make.top.equalTo(view.safeAreaLayoutGuide.snp.top).offset(42)
-            make.trailing.equalToSuperview().offset(-8)
-            make.width.height.equalTo(32)
-        }
+        view.bringSubviewToFront(ctaButton)
     }
 
     // MARK: - Progress Bars
@@ -144,6 +140,7 @@ final class StoriesViewerViewController: UIViewController {
         progressStack.arrangedSubviews.forEach { $0.removeFromSuperview() }
 
         let count = max(1, story.images.count)
+
         for _ in 0..<count {
             let bar = UIProgressView(progressViewStyle: .bar)
             bar.trackTintColor = UIColor.white.withAlphaComponent(0.3)
@@ -156,36 +153,36 @@ final class StoriesViewerViewController: UIViewController {
         }
     }
 
-    // MARK: - Media (Image or GIF from assets)
+    // MARK: - Media (Image or GIF using SwiftyGif)
     private func showMedia(at index: Int, animated: Bool) {
         guard !story.images.isEmpty else { return }
         let idx = max(0, min(index, story.images.count - 1))
         currentIndex = idx
         let name = story.images[idx]
 
-        // Clear any previous GIF from SwiftyGif
+        // Always clear previous GIF state
         imageView.clear()
 
-        // Try to load a GIF from an asset catalog data asset first
+        // 1) Try a Data Asset (GIF stored in asset catalog)
         if let dataAsset = NSDataAsset(name: name),
            let gif = try? UIImage(gifData: dataAsset.data) {
             imageView.setGifImage(gif, loopCount: -1)
-        } else if let image = UIImage(named: name) {
-            // Fallback to a normal image from asset catalog
+        }
+        // 2) Try a normal image from asset catalog
+        else if let image = UIImage(named: name) {
             imageView.image = image
+        }
+        // 3) Try a loose bundle file "name.gif"
+        else if let path = Bundle.main.path(forResource: name, ofType: "gif"),
+                let data = try? Data(contentsOf: URL(fileURLWithPath: path)),
+                let gif = try? UIImage(gifData: data) {
+            imageView.setGifImage(gif, loopCount: -1)
         } else {
-            // Fallback to a loose file "name.gif" in the bundle (optional)
-            if let path = Bundle.main.path(forResource: name, ofType: "gif"),
-               let data = try? Data(contentsOf: URL(fileURLWithPath: path)),
-               let gif = try? UIImage(gifData: data) {
-                imageView.setGifImage(gif, loopCount: -1)
-            } else {
-                print("⚠️ Asset not found: \(name) (image or gif)")
-                imageView.image = nil
-            }
+            print("⚠️ Asset not found: \(name) (image or gif)")
+            imageView.image = nil
         }
 
-        // First image centered and contained, others fill
+        // Center first image, fill others
         if idx == 0 {
             imageView.contentMode = .scaleAspectFit
             imageView.backgroundColor = .black
@@ -220,13 +217,6 @@ final class StoriesViewerViewController: UIViewController {
 
         ctaButton.isHidden = (story.link == nil)
         updateProgressBars()
-        bringControlsToFront()
-    }
-
-    private func bringControlsToFront() {
-        view.bringSubviewToFront(progressStack)
-        view.bringSubviewToFront(closeButton)
-        view.bringSubviewToFront(ctaButton)
     }
 
     private func updateProgressBars() {
@@ -265,7 +255,7 @@ final class StoriesViewerViewController: UIViewController {
             startTimer()
         } else if let onRequestNextStory {
             stopTimer()
-            dismiss(animated: true) { onRequestNextStory() }
+            onRequestNextStory()
         } else {
             finish()
         }
@@ -288,6 +278,7 @@ final class StoriesViewerViewController: UIViewController {
         holdGesture.minimumPressDuration = 0.1
         view.addGestureRecognizer(holdGesture)
 
+        // Overlay views for left/right tap zones, starting BELOW the header (progress + close)
         let leftView = UIView()
         let rightView = UIView()
         leftView.backgroundColor = .clear
@@ -297,17 +288,26 @@ final class StoriesViewerViewController: UIViewController {
         view.addSubview(rightView)
 
         leftView.snp.makeConstraints { make in
-            make.top.bottom.left.equalToSuperview()
+            make.top.equalTo(progressStack.snp.bottom).offset(8)
+            make.bottom.equalToSuperview()
+            make.left.equalToSuperview()
             make.width.equalToSuperview().multipliedBy(0.5)
         }
 
         rightView.snp.makeConstraints { make in
-            make.top.bottom.right.equalToSuperview()
+            make.top.equalTo(progressStack.snp.bottom).offset(8)
+            make.bottom.equalToSuperview()
+            make.right.equalToSuperview()
             make.width.equalToSuperview().multipliedBy(0.5)
         }
 
         leftView.addGestureRecognizer(leftTap)
         rightView.addGestureRecognizer(rightTap)
+
+        // Ensure header controls remain tappable
+        view.bringSubviewToFront(progressStack)
+        view.bringSubviewToFront(closeButton)
+        view.bringSubviewToFront(ctaButton)
     }
 
     // MARK: - Actions
@@ -332,8 +332,15 @@ final class StoriesViewerViewController: UIViewController {
 
     private func finish() {
         stopTimer()
-        dismiss(animated: true) { [weak self] in
-            self?.onFinished?()
+        if presentingViewController != nil {
+            dismiss(animated: true) { [weak self] in
+                self?.onFinished?()
+            }
+        } else if let nav = navigationController {
+            nav.popViewController(animated: true)
+            onFinished?()
+        } else {
+            onFinished?()
         }
     }
 

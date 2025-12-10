@@ -10,10 +10,9 @@ import SnapKit
 
 final class BookDetailViewController: UIViewController {
 
-    private let book: Book
+    private var book: Book
     private let injectedReviews: [ReviewItem]?
 
-    // MARK: - UI Elements
     private let backgroundImageView = UIImageView()
     private let blurView = UIVisualEffectView(effect: UIBlurEffect(style: .dark))
     private let bookImageView = UIImageView()
@@ -61,8 +60,7 @@ final class BookDetailViewController: UIViewController {
 
         view.addSubview(scrollView)
         scrollView.snp.makeConstraints {
-            $0.top.equalTo(view)
-            $0.leading.trailing.bottom.equalToSuperview()
+            $0.edges.equalToSuperview()
         }
 
         scrollView.addSubview(contentView)
@@ -75,17 +73,43 @@ final class BookDetailViewController: UIViewController {
         backgroundImageView.contentMode = .scaleAspectFill
         backgroundImageView.clipsToBounds = true
         backgroundImageView.snp.makeConstraints { make in
-            make.top.leading.trailing.equalToSuperview()
+            make.top.equalTo(view.snp.top)
+            make.leading.trailing.equalToSuperview()
             make.height.equalTo(440)
         }
 
         contentView.addSubview(blurView)
         blurView.snp.makeConstraints { make in
-            make.top.leading.trailing.equalToSuperview()
+            make.top.equalTo(view.snp.top)
+            make.leading.trailing.equalToSuperview()
             make.height.equalTo(440)
         }
 
-        contentView.addSubviews([bookImageView, bookTitleLabel, authorLabel, backButton, favoriteButton])
+        let largeConfig = UIImage.SymbolConfiguration(pointSize: 18, weight: .medium)
+        backButton.setImage(UIImage(systemName: "chevron.left", withConfiguration: largeConfig), for: .normal)
+        backButton.tintColor = .white
+        backButton.addTarget(self, action: #selector(didTapBack), for: .touchUpInside)
+
+        favoriteButton.setImage(UIImage(systemName: "heart", withConfiguration: largeConfig), for: .normal)
+        favoriteButton.tintColor = .white
+        favoriteButton.addTarget(self, action: #selector(didTapFavorite), for: .touchUpInside)
+
+        let backButtonGlass = createGlassButton(for: backButton)
+        let favoriteButtonGlass = createGlassButton(for: favoriteButton)
+
+        contentView.addSubviews([bookImageView, bookTitleLabel, authorLabel, backButtonGlass, favoriteButtonGlass])
+
+        backButtonGlass.snp.makeConstraints {
+            $0.top.equalTo(contentView).offset(view.safeAreaInsets.top + 8)
+            $0.leading.equalToSuperview().offset(16)
+            $0.width.height.equalTo(40)
+        }
+
+        favoriteButtonGlass.snp.makeConstraints {
+            $0.top.equalTo(contentView).offset(view.safeAreaInsets.top + 8)
+            $0.trailing.equalToSuperview().inset(16)
+            $0.width.height.equalTo(40)
+        }
 
         bookImageView.contentMode = .scaleAspectFill
         bookImageView.layer.cornerRadius = 12
@@ -114,29 +138,6 @@ final class BookDetailViewController: UIViewController {
             $0.leading.trailing.equalToSuperview().inset(24)
         }
 
-        backButton.setImage(UIImage(systemName: "chevron.left"), for: .normal)
-        backButton.tintColor = .white
-        backButton.backgroundColor = UIColor.black.withAlphaComponent(0.3)
-        backButton.layer.cornerRadius = 20
-        backButton.addTarget(self, action: #selector(didTapBack), for: .touchUpInside)
-        backButton.snp.makeConstraints {
-            $0.top.equalTo(contentView).offset(16)
-            $0.leading.equalToSuperview().offset(16)
-            $0.width.height.equalTo(40)
-        }
-
-        favoriteButton.setImage(UIImage(systemName: "heart"), for: .normal)
-        favoriteButton.tintColor = .white
-        favoriteButton.backgroundColor = UIColor.black.withAlphaComponent(0.3)
-        favoriteButton.layer.cornerRadius = 20
-        favoriteButton.addTarget(self, action: #selector(didTapFavorite), for: .touchUpInside)
-        favoriteButton.snp.makeConstraints {
-            $0.top.equalTo(contentView).offset(16)
-            $0.trailing.equalToSuperview().inset(16)
-            $0.width.height.equalTo(40)
-        }
-
-        // Bottom card
         contentView.addSubview(bottomCardView)
         bottomCardView.backgroundColor = .systemBackground
         bottomCardView.layer.cornerRadius = 24
@@ -147,20 +148,18 @@ final class BookDetailViewController: UIViewController {
             $0.leading.trailing.bottom.equalToSuperview()
         }
 
-        // Characteristics
         bottomCardView.addSubview(characteristicsStack)
         characteristicsStack.axis = .horizontal
-        characteristicsStack.distribution = .fillEqually
+        characteristicsStack.distribution = .equalCentering
         characteristicsStack.alignment = .center
         characteristicsStack.spacing = 20
         characteristicsStack.snp.makeConstraints {
             $0.top.equalToSuperview().offset(18)
-            $0.leading.trailing.equalToSuperview().inset(16)
-            $0.height.greaterThanOrEqualTo(46)
+            $0.centerX.equalToSuperview()
+            $0.width.lessThanOrEqualToSuperview().inset(16)
         }
         characteristicsStack.addArrangedSubviews([ratingView, reviewsView, pagesView, ageView])
 
-        // Language · Year
         separatorLabel.text = "·"
         separatorLabel.font = .systemFont(ofSize: 12)
         separatorLabel.textColor = .secondaryLabel
@@ -175,27 +174,25 @@ final class BookDetailViewController: UIViewController {
         languageYearStack.alignment = .center
         bottomCardView.addSubview(languageYearStack)
         languageYearStack.snp.makeConstraints {
-            $0.top.equalTo(characteristicsStack.snp.bottom).offset(8)
+            $0.top.equalTo(characteristicsStack.snp.bottom).offset(12)
             $0.centerX.equalToSuperview()
         }
 
-        // "О книге"
         sectionTitleLabel.text = "О книге"
-        sectionTitleLabel.font = .systemFont(ofSize: 22, weight: .bold)
+        sectionTitleLabel.font = .systemFont(ofSize: 18, weight: .bold)
         sectionTitleLabel.textAlignment = .left
+        
         bottomCardView.addSubview(sectionTitleLabel)
         sectionTitleLabel.snp.makeConstraints {
             $0.top.equalTo(languageYearStack.snp.bottom).offset(16)
             $0.leading.equalToSuperview().offset(16)
         }
 
-        // Description + Read More
         descriptionLabel.font = .systemFont(ofSize: 15)
         descriptionLabel.numberOfLines = 5
         descriptionLabel.lineBreakMode = .byTruncatingTail
-        descriptionLabel.textColor = .secondaryLabel
+        descriptionLabel.textColor = .label
 
-        // Configure link-style button with UIButton.Configuration on iOS 15+
         if #available(iOS 15.0, *) {
             var conf = UIButton.Configuration.plain()
             conf.baseForegroundColor = UIColor(named: "AccentColor")
@@ -218,8 +215,10 @@ final class BookDetailViewController: UIViewController {
 
         descriptionLabel.snp.makeConstraints {
             $0.top.equalTo(sectionTitleLabel.snp.bottom).offset(8)
-            $0.leading.trailing.equalToSuperview().inset(20)
+            $0.trailing.equalToSuperview().inset(20)
+            $0.leading.equalToSuperview().offset(16)
         }
+        
 
         readMoreButton.snp.makeConstraints {
             $0.top.equalTo(descriptionLabel.snp.bottom).offset(6)
@@ -228,14 +227,19 @@ final class BookDetailViewController: UIViewController {
         }
     }
 
+    private func createGlassButton(for button: UIButton) -> GlassButtonContainer {
+        return GlassButtonContainer(button: button)
+    }
+
     private func bindData() {
         backgroundImageView.image = UIImage(named: book.coverImageName)
         bookImageView.image = UIImage(named: book.coverImageName)
         bookTitleLabel.text = book.title
         authorLabel.text = book.author
 
+        book.isFavorite = FavoritesManager.shared.isFavorite(bookID: book.id)
+        
         let reviewsToShow = injectedReviews ?? book.reviews
-
         ratingView.configure(stars: book.rating, count: reviewsToShow.count)
         reviewsView.configure(value: "\(reviewsToShow.count)", title: "отзывов", valueFont: 18, titleFont: 11)
         pagesView.configure(value: "\(book.pageCount)", title: "стр.", valueFont: 18, titleFont: 11)
@@ -246,7 +250,6 @@ final class BookDetailViewController: UIViewController {
 
         descriptionLabel.text = book.bookDescription.isEmpty ? "Описание отсутствует" : book.bookDescription
 
-        // Сброс состояния разворота
         isExpanded = false
         descriptionLabel.numberOfLines = 5
         descriptionLabel.lineBreakMode = .byTruncatingTail
@@ -256,9 +259,71 @@ final class BookDetailViewController: UIViewController {
             readMoreButton.setTitle("Далее", for: .normal)
         }
 
-        // Обновить видимость кнопки после того, как лейаут построен
+        updateFavoriteButton(animated: false)
         view.layoutIfNeeded()
         updateReadMoreVisibility()
+    }
+
+
+    @objc private func didTapBack() {
+        navigationController?.popViewController(animated: true)
+    }
+
+    @objc private func didTapFavorite() {
+        book.isFavorite.toggle()
+        updateFavoriteButton(animated: true)
+        FavoritesManager.shared.setFavorite(bookID: book.id, isFavorite: book.isFavorite)
+    }
+
+    @objc private func toggleReadMore() {
+        let anchorInScroll = descriptionLabel.convert(CGPoint.zero, to: scrollView).y
+        let originalOffsetY = scrollView.contentOffset.y
+        let anchorDelta = anchorInScroll - originalOffsetY
+
+        isExpanded.toggle()
+        descriptionLabel.alpha = 0.98
+        descriptionLabel.numberOfLines = isExpanded ? 0 : 5
+        descriptionLabel.lineBreakMode = isExpanded ? .byWordWrapping : .byTruncatingTail
+        if #available(iOS 15.0, *) {
+            readMoreButton.configuration?.title = isExpanded ? "Свернуть" : "Далее"
+        } else {
+            readMoreButton.setTitle(isExpanded ? "Свернуть" : "Далее", for: .normal)
+        }
+
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+
+        let animator = UIViewPropertyAnimator(duration: 0.28, curve: .easeInOut) {
+            self.view.layoutIfNeeded()
+            let newAnchorInScroll = self.descriptionLabel.convert(CGPoint.zero, to: self.scrollView).y
+            let targetOffsetY = newAnchorInScroll - anchorDelta
+            let clamped = max(0, min(targetOffsetY, self.scrollView.contentSize.height - self.scrollView.bounds.height))
+            self.scrollView.contentOffset.y = clamped
+            self.descriptionLabel.alpha = 1.0
+        }
+
+        animator.addCompletion { _ in
+            CATransaction.commit()
+        }
+
+        animator.startAnimation()
+    }
+
+    private func updateFavoriteButton(animated: Bool = true) {
+        let imageName = book.isFavorite ? "heart.fill" : "heart"
+        let tint: UIColor = book.isFavorite ? .systemRed : .white
+
+        favoriteButton.setImage(UIImage(systemName: imageName), for: .normal)
+        favoriteButton.tintColor = tint
+
+        guard animated else { return }
+        UIView.animate(withDuration: 0.18, delay: 0, usingSpringWithDamping: 0.6, initialSpringVelocity: 0.8, options: [], animations: {
+            self.favoriteButton.transform = CGAffineTransform(scaleX: 1.15, y: 1.15)
+        }) { _ in
+            UIView.animate(withDuration: 0.12) {
+                self.favoriteButton.transform = .identity
+            }
+        }
     }
 
     private func updateReadMoreVisibility() {
@@ -283,50 +348,16 @@ final class BookDetailViewController: UIViewController {
         return bounding.height > maxHeight + 1
     }
 
-    @objc private func toggleReadMore() {
-        // Anchor to the top of description to avoid jump
-        let anchorInScroll = descriptionLabel.convert(CGPoint.zero, to: scrollView).y
-        let originalOffsetY = scrollView.contentOffset.y
-        let anchorDelta = anchorInScroll - originalOffsetY
-
-        isExpanded.toggle()
-        descriptionLabel.alpha = 0.98 // tiny fade to soften change
-        descriptionLabel.numberOfLines = isExpanded ? 0 : 5
-        descriptionLabel.lineBreakMode = isExpanded ? .byWordWrapping : .byTruncatingTail
-        if #available(iOS 15.0, *) {
-            readMoreButton.configuration?.title = isExpanded ? "Свернуть" : "Далее"
-        } else {
-            readMoreButton.setTitle(isExpanded ? "Свернуть" : "Далее", for: .normal)
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        let topInset = view.safeAreaInsets.top
+        backgroundImageView.snp.updateConstraints { make in
+            make.height.equalTo(440 + topInset)
         }
-
-        // Disable implicit animations on layers that should not animate
-        CATransaction.begin()
-        CATransaction.setDisableActions(true)
-
-        let animator = UIViewPropertyAnimator(duration: 0.28, curve: .easeInOut) {
-            self.view.layoutIfNeeded()
-
-            // Keep the same anchor position visible during the animation
-            let newAnchorInScroll = self.descriptionLabel.convert(CGPoint.zero, to: self.scrollView).y
-            let targetOffsetY = newAnchorInScroll - anchorDelta
-            let clamped = max(0, min(targetOffsetY, self.scrollView.contentSize.height - self.scrollView.bounds.height))
-            self.scrollView.contentOffset.y = clamped
-
-            self.descriptionLabel.alpha = 1.0
+        blurView.snp.updateConstraints { make in
+            make.height.equalTo(440 + topInset)
         }
-
-        animator.addCompletion { _ in
-            CATransaction.commit()
-        }
-
-        animator.startAnimation()
-    }
-
-    @objc private func didTapBack() { navigationController?.popViewController(animated: true) }
-
-    @objc private func didTapFavorite() {
-        favoriteButton.setImage(UIImage(systemName: "heart.fill"), for: .normal)
-        favoriteButton.tintColor = .systemRed
+        view.layoutIfNeeded()
     }
 
     override func viewWillAppear(_ animated: Bool) {
