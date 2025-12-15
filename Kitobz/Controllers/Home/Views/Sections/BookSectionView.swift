@@ -1,4 +1,3 @@
-
 //  BookSectionView.swift
 //  Kitobz
 //
@@ -9,6 +8,8 @@ import UIKit
 import SnapKit
 
 final class BookSectionView: UIView {
+    
+    var onBookSelected: ((Book) -> Void)?
     
     private let titleLabel: UILabel = {
         let l = UILabel()
@@ -40,6 +41,7 @@ final class BookSectionView: UIView {
         layout.scrollDirection = .horizontal
         layout.minimumLineSpacing = 12
         layout.minimumInteritemSpacing = 0
+        
         collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
         collectionView.showsHorizontalScrollIndicator = false
         collectionView.backgroundColor = .clear
@@ -97,6 +99,11 @@ extension BookSectionView: UICollectionViewDataSource, UICollectionViewDelegateF
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: BookCardCell.id, for: indexPath) as! BookCardCell
         cell.configure(with: books[indexPath.item])
         return cell
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        let book = books[indexPath.item]
+        onBookSelected?(book)
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {

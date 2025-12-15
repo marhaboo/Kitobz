@@ -2,7 +2,7 @@
 //  RoundCardCell.swift
 //  Kitobz
 //
-//  Created by Boymurodова Марhabo on 03/12/25.
+//  Created by Boymuroдова Марhabo on 03/12/25.
 //
 
 import UIKit
@@ -35,6 +35,7 @@ final class RoundCardCell: UICollectionViewCell {
     private let gradientRing = CAGradientLayer()
     private let gradientMask = CAShapeLayer()
     private let innerRing = CAShapeLayer()
+    private let grayRing = CAShapeLayer()
 
     // MARK: - Metrics
     private let circleDiameter: CGFloat = 96
@@ -42,6 +43,7 @@ final class RoundCardCell: UICollectionViewCell {
     private let innerRingWidth: CGFloat = 2
 
     private var isLayersSetup = false
+    private var seen: Bool = false
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -91,15 +93,17 @@ final class RoundCardCell: UICollectionViewCell {
         gradientRing.contentsScale = scale
         gradientMask.contentsScale = scale
         innerRing.contentsScale = scale
+        grayRing.contentsScale = scale
 
-        // Внешнее градиентное кольцо
+        // Gradient outer ring (unseen)
         gradientRing.startPoint = CGPoint(x: 0, y: 0)
         gradientRing.endPoint = CGPoint(x: 1, y: 1)
         gradientRing.colors = [
+            UIColor.systemRed.cgColor,
             UIColor.systemPink.cgColor,
             UIColor.magenta.withAlphaComponent(0.9).cgColor
         ]
-        gradientRing.locations = [0, 1]
+        gradientRing.locations = [0, 0.5, 1]
         gradientRing.type = .axial
 
         gradientMask.fillColor = UIColor.clear.cgColor
@@ -108,15 +112,25 @@ final class RoundCardCell: UICollectionViewCell {
         gradientMask.lineCap = .round
         gradientRing.mask = gradientMask
 
+        // Inner light ring
         innerRing.fillColor = UIColor.clear.cgColor
         innerRing.strokeColor = UIColor.systemGray4.cgColor
         innerRing.lineWidth = innerRingWidth
 
+        // Gray ring (seen)
+        grayRing.fillColor = UIColor.clear.cgColor
+        grayRing.strokeColor = UIColor.systemGray3.cgColor
+        grayRing.lineWidth = outerRingWidth
+        grayRing.lineCap = .round
+        grayRing.isHidden = true
+
         gradientRing.zPosition = 1
+        grayRing.zPosition = 1
         innerRing.zPosition = 2
         imageView.layer.zPosition = 0
 
         circleContainer.layer.addSublayer(gradientRing)
+        circleContainer.layer.addSublayer(grayRing)
         circleContainer.layer.addSublayer(innerRing)
 
         isLayersSetup = true
@@ -125,6 +139,7 @@ final class RoundCardCell: UICollectionViewCell {
     override func layoutSubviews() {
         super.layoutSubviews()
         updateLayersGeometryIfPossible()
+        imageView.layer.cornerRadius = imageView.bounds.width / 2
     }
 
     private func updateLayersGeometryIfPossible() {
@@ -156,17 +171,44 @@ final class RoundCardCell: UICollectionViewCell {
             clockwise: true
         )
         innerRing.path = innerPath.cgPath
+
+        let grayPath = UIBezierPath(
+            arcCenter: center,
+            radius: radius,
+            startAngle: 0,
+            endAngle: 2 * .pi,
+            clockwise: true
+        )
+        grayRing.path = grayPath.cgPath
+
+        applySeenState()
     }
 
     override func prepareForReuse() {
         super.prepareForReuse()
         imageView.image = nil
         titleLabel.text = nil
+        seen = false
+        applySeenState()
     }
 
-    func configure(with item: RoundCardItem) {
+    func configure(with item: RoundCardItem, seen: Bool = false) {
         imageView.image = UIImage(named: item.imageName)
         titleLabel.text = item.title
+        self.seen = seen
         setNeedsLayout()
     }
+
+    func setSeen(_ seen: Bool) {
+        self.seen = seen
+        applySeenState()
+    }
+
+    private func applySeenState() {
+        // If seen → hide gradient, show gray ring
+        gradientRing.isHidden = seen
+        gradientRing.mask?.isHidden = seen
+        grayRing.isHidden = !seen
+    }
 }
+

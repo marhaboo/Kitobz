@@ -12,27 +12,29 @@ final class SocialMediaSectionView: UIView {
     
     private lazy var collectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
-        layout.scrollDirection = .horizontal
-        layout.minimumLineSpacing = 12
-        layout.minimumInteritemSpacing = 12
-        layout.sectionInset = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
+        layout.scrollDirection = .vertical
+        layout.minimumLineSpacing = 0
+        layout.minimumInteritemSpacing = 0
+        layout.sectionInset = .zero
         
         let cv = UICollectionView(frame: .zero, collectionViewLayout: layout)
         cv.backgroundColor = .clear
-        cv.showsHorizontalScrollIndicator = false
+        cv.isScrollEnabled = false
         cv.delegate = self
         cv.dataSource = self
         cv.register(SocialMediaCardCell.self, forCellWithReuseIdentifier: SocialMediaCardCell.identifier)
         return cv
     }()
     
+    private var heightConstraint: Constraint?
+    
     var items: [SocialMediaItem] = [] {
         didSet {
             collectionView.reloadData()
+            updateHeightConstraint()
         }
     }
     
-    // MARK: - Initializers
     override init(frame: CGRect) {
         super.init(frame: frame)
         setupViews()
@@ -42,45 +44,60 @@ final class SocialMediaSectionView: UIView {
         fatalError("init(coder:) has not been implemented")
     }
     
-    // MARK: - Setup
     private func setupViews() {
         addSubview(collectionView)
-        
         collectionView.snp.makeConstraints { make in
             make.top.equalToSuperview()
-            make.leading.trailing.equalToSuperview()
-            make.height.equalTo(106)
-            make.bottom.equalToSuperview().inset(8)
+            make.leading.equalToSuperview().offset(32)
+            make.trailing.equalToSuperview().offset(-32)
+            heightConstraint = make.height.equalTo(1).constraint
+            make.bottom.equalToSuperview()
         }
+    }
+    
+    private func updateHeightConstraint() {
+        let width = bounds.width > 0 ? bounds.width : UIScreen.main.bounds.width
+        let rowHeight = floor(width / 4.0)
+        heightConstraint?.update(offset: rowHeight)
+        layoutIfNeeded()
+    }
+    
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        updateHeightConstraint()
     }
 }
 
-// MARK: - UICollectionView Delegate & DataSource
 extension SocialMediaSectionView: UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return items.count
+        return min(items.count, 4)
     }
     
-    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        guard let cell = collectionView.dequeueReusableCell(
+    func collectionView(_ collectionView: UICollectionView,
+                        cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        let cell = collectionView.dequeueReusableCell(
             withReuseIdentifier: SocialMediaCardCell.identifier,
             for: indexPath
-        ) as? SocialMediaCardCell else {
-            return UICollectionViewCell()
-        }
+        ) as! SocialMediaCardCell
         
-        let item = items[indexPath.item]
-        cell.configure(with: item)
+        cell.configure(with: items[indexPath.item])
         return cell
     }
     
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        return CGSize(width: 280, height: 90)
+    func collectionView(_ collectionView: UICollectionView,
+                        layout collectionViewLayout: UICollectionViewLayout,
+                        sizeForItemAt indexPath: IndexPath) -> CGSize {
+        let width = collectionView.bounds.width
+        let side = floor(width / 4)
+        return CGSize(width: side, height: side)
     }
-    
+
+ 
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         let item = items[indexPath.item]
-        print("Selected: \(item.platform)")
+        UIApplication.shared.open(item.link)
     }
+
 }
+

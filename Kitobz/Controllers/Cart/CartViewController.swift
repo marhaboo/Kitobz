@@ -2,9 +2,8 @@
 //  CartViewController.swift
 //  Kitobz
 //
-//  Created by Boynurodova Marhabo on 01/12/25.
+//  Created by Boymurodova Marhabo on 01/12/25.
 //
-//===
 
 import UIKit
 import SnapKit
@@ -188,4 +187,3 @@ extension CartViewController: UITableViewDataSource, UITableViewDelegate {
         return UISwipeActionsConfiguration(actions: [deleteAction])
     }
 }
-
