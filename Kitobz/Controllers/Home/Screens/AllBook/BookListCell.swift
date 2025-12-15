@@ -66,6 +66,13 @@ final class BookListCell: UICollectionViewCell {
         return l
     }()
 
+    private let oldPriceLabel: UILabel = {
+        let l = UILabel()
+        l.font = .systemFont(ofSize: 14)
+        l.textColor = .secondaryLabel
+        return l
+    }()
+
     private let favoriteButton: UIButton = {
         let b = UIButton(type: .system)
         b.tintColor = .secondaryLabel
@@ -100,17 +107,26 @@ final class BookListCell: UICollectionViewCell {
         ratingRow.axis = .horizontal
         ratingRow.spacing = 6
         ratingRow.alignment = .center
-
-
         ratingRow.addArrangedSubview(ratingIcon)
         ratingRow.addArrangedSubview(ratingValueLabel)
         ratingRow.addArrangedSubview(reviewsCountLabel)
         ratingRow.addArrangedSubview(UIView())
 
+        let priceStack = UIStackView()
+        priceStack.axis = .horizontal
+        priceStack.spacing = 4 // reduced spacing
+        priceStack.alignment = .firstBaseline // align nicely
+        priceStack.addArrangedSubview(priceLabel)
+        priceStack.addArrangedSubview(oldPriceLabel)
+
+        // Hugging priority to keep old price tight
+        oldPriceLabel.setContentHuggingPriority(.required, for: .horizontal)
+        priceLabel.setContentHuggingPriority(.defaultHigh, for: .horizontal)
+
         rightStack.addArrangedSubview(titleLabel)
         rightStack.addArrangedSubview(authorLabel)
         rightStack.addArrangedSubview(ratingRow)
-        rightStack.addArrangedSubview(priceLabel)
+        rightStack.addArrangedSubview(priceStack)
 
         contentView.addSubview(rightStack)
 
@@ -163,6 +179,20 @@ final class BookListCell: UICollectionViewCell {
         }
 
         priceLabel.text = book.price
+
+        // Handle old price
+        if let old = book.oldPrice, !old.isEmpty {
+            let attribute = NSAttributedString(
+                string: old,
+                attributes: [
+                    .strikethroughStyle: NSUnderlineStyle.single.rawValue,
+                    .foregroundColor: UIColor.red
+                ]
+            )
+            oldPriceLabel.attributedText = attribute
+        } else {
+            oldPriceLabel.attributedText = nil
+        }
 
         let isFav = FavoritesManager.shared.isFavorite(bookID: book.id) || book.isFavorite
         favoriteButton.setImage(UIImage(systemName: isFav ? "heart.fill" : "heart"), for: .normal)
