@@ -7,8 +7,6 @@
 
 import Foundation
 
-import Foundation
-
 struct BooksProvider {
 
     static func baseBooks() -> [Book] {
@@ -17,6 +15,9 @@ struct BooksProvider {
             title: "Война и мир",
             author: "Лев Толстой",
             price: "75 TJS",
+            oldPrice: nil,
+            discountText: nil,
+            id: "book.war.and.peace",
             bookDescription:
             """
             «Война и мир» — эпическое произведение о судьбах людей на фоне масштабных исторических событий. Толстой мастерски переплетает жизнь дворянских семей, философские размышления и реалистичные картины войны. 
@@ -30,14 +31,21 @@ struct BooksProvider {
             language: "Русский",
             coverType: "Твёрдый",
             pageCount: 1225,
-            publishYear: 1869
+            publishYear: 1869,
+            reviews: [],
+            quotes: [],
+            otherBooksByAuthor: [],
+            isFavorite: true
         )
 
         let crimeAndPunishment = Book(
             coverImageName: "book2",
             title: "Преступление и наказание",
             author: "Фёдор Достоевский",
-            price: "63 TJS",
+            price: "45 TJS",
+            oldPrice: "63 TJS",
+            discountText: "-30%",
+            id: "book.crime.and.punishment",
             bookDescription:
             """
             Роман о преступлении не только как поступке, но и как состоянии души. 
@@ -51,14 +59,18 @@ struct BooksProvider {
             language: "Русский",
             coverType: "Мягкий",
             pageCount: 671,
-            publishYear: 1866
+            publishYear: 1866,
+            isFavorite: true
         )
 
         let annaKarenina = Book(
             coverImageName: "book3",
             title: "Анна Каренина",
             author: "Лев Толстой",
-            price: "52 TJS",
+            price: "40 TJS",
+            oldPrice: "52 TJS",
+            discountText: "-25%",
+            id: "book.anna.karenina",
             bookDescription:
             """
             История любви, свободы и ответственности. 
@@ -80,6 +92,9 @@ struct BooksProvider {
             title: "Люби себя",
             author: "Мария Иванова",
             price: "48 TJS",
+            oldPrice: nil,
+            discountText: nil,
+            id: "book.love.yourself",
             bookDescription:
             """
             Практическое руководство по бережному отношению к себе. 
@@ -101,6 +116,9 @@ struct BooksProvider {
             title: "К себе нежно",
             author: "Екатерина Петрова",
             price: "50 TJS",
+            oldPrice: nil,
+            discountText: nil,
+            id: "book.gentle.to.yourself",
             bookDescription:
             """
             Книга о внимательности к себе и уважении личных границ. 
@@ -117,6 +135,16 @@ struct BooksProvider {
             publishYear: 2023
         )
 
-        return [warAndPeace, crimeAndPunishment, annaKarenina, loveYourself, gentleToYourself]
+        let books = [warAndPeace, crimeAndPunishment, annaKarenina, loveYourself, gentleToYourself]
+
+        let seededKey = "kitobz_favorites_seeded_v1"
+        if !UserDefaults.standard.bool(forKey: seededKey) {
+            for book in books where book.isFavorite {
+                FavoritesManager.shared.setFavoriteSilently(bookID: book.id, isFavorite: true)
+            }
+            UserDefaults.standard.set(true, forKey: seededKey)
+        }
+
+        return books
     }
 }

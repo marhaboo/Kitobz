@@ -10,6 +10,8 @@ import SnapKit
 final class BookSectionView: UIView {
     
     var onBookSelected: ((Book) -> Void)?
+    // New: callback for "Все"
+    var onShowAll: (([Book], String) -> Void)?
     
     private let titleLabel: UILabel = {
         let l = UILabel()
@@ -32,9 +34,11 @@ final class BookSectionView: UIView {
         l.textColor = UIColor(named: "AccentColor2")
         l.text = "Все"
         l.textAlignment = .right
+        l.isUserInteractionEnabled = true // make tappable
         return l
     }()
 
+    private var sectionTitle: String = ""
     
     init(title: String) {
         let layout = UICollectionViewFlowLayout()
@@ -48,11 +52,15 @@ final class BookSectionView: UIView {
         
         super.init(frame: .zero)
         titleLabel.text = title
+        sectionTitle = title
         
         addSubview(titleLabel)
         addSubview(allLabel)
         addSubview(collectionView)
 
+        // Tap on "Все"
+        let tap = UITapGestureRecognizer(target: self, action: #selector(didTapAll))
+        allLabel.addGestureRecognizer(tap)
         
         collectionView.dataSource = self
         collectionView.delegate = self
@@ -86,6 +94,10 @@ final class BookSectionView: UIView {
     
     func setBooks(_ books: [Book]) {
         self.books = books
+    }
+    
+    @objc private func didTapAll() {
+        onShowAll?(books, sectionTitle)
     }
 }
 

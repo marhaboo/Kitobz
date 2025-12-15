@@ -9,9 +9,7 @@ import Foundation
 
 struct ReviewsProvider {
 
-    // Генерируем 16 отзывов с неравномерным распределением по книгам
     static func loadReviews(for books: [Book]) -> [ReviewItem] {
-        // Создадим словарь по названию для удобства привязки
         var idsByTitle: [String: String] = [:]
         for b in books {
             idsByTitle[b.title] = b.id
@@ -23,7 +21,6 @@ struct ReviewsProvider {
 
         var result: [ReviewItem] = []
 
-        // warAndPeace — 6
         result += [
             .init(bookId: id("Война и мир"), userName: "Анна", date: "01.08.2025",
                   bookCoverImageName: "book1", bookTitle: "Война и мир", rating: 5,
@@ -45,7 +42,6 @@ struct ReviewsProvider {
                   reviewText: "Шедевр, без вопросов.", mood: .happy)
         ]
 
-        // crimeAndPunishment — 4
         result += [
             .init(bookId: id("Преступление и наказание"), userName: "Наталья", date: "05.08.2025",
                   bookCoverImageName: "book2", bookTitle: "Преступление и наказание", rating: 5,
@@ -61,7 +57,6 @@ struct ReviewsProvider {
                   reviewText: "Тяжёлая, но нужная книга.", mood: .neutral)
         ]
 
-        // annaKarenina — 3
         result += [
             .init(bookId: id("Анна Каренина"), userName: "Михаил", date: "03.08.2025",
                   bookCoverImageName: "book3", bookTitle: "Анна Каренина", rating: 5,
@@ -74,7 +69,6 @@ struct ReviewsProvider {
                   reviewText: "Сильные эмоции после прочтения.", mood: .happy)
         ]
 
-        // gentleToYourself — 2
         result += [
             .init(bookId: id("К себе нежно"), userName: "Ирина", date: "07.08.2025",
                   bookCoverImageName: "book5", bookTitle: "К себе нежно", rating: 5,
@@ -84,7 +78,6 @@ struct ReviewsProvider {
                   reviewText: "Полезные практики, читается легко.", mood: .happy)
         ]
 
-        // loveYourself — 1
         result += [
             .init(bookId: id("Люби себя"), userName: "Ксения", date: "09.08.2025",
                   bookCoverImageName: "book4", bookTitle: "Люби себя", rating: 5,

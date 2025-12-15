@@ -53,11 +53,30 @@ final class BookDetailView: UIView {
         return l
     }()
 
+    private let descriptionContainerView: UIView = {
+        let v = UIView()
+        v.backgroundColor = UIColor(named: "cardBg") ?? UIColor(white: 0.15, alpha: 1.0)
+        v.layer.cornerRadius = 16
+        v.layer.masksToBounds = true
+        return v
+    }()
+    
+    private let gradientOverlay: CAGradientLayer = {
+        let gradient = CAGradientLayer()
+        gradient.colors = [
+            UIColor.clear.cgColor,
+            UIColor.black.withAlphaComponent(0.8).cgColor
+        ]
+        gradient.locations = [0.5, 1.0]
+        return gradient
+    }()
+
     let descriptionLabel: UILabel = {
         let l = UILabel()
         let font = UIFont.systemFont(ofSize: 15)
         l.font = font
-        l.numberOfLines = 0
+        l.numberOfLines = 4
+        l.textColor = .white
         return l
     }()
 
@@ -131,9 +150,12 @@ final class BookDetailView: UIView {
         scrollView.addSubview(contentView)
 
         // add subviews to contentView
-        [coverImageView, titleLabel, authorLabel, ratingLabel, priceLabel, descriptionLabel, favoriteButton, readSampleButton].forEach {
+        [coverImageView, titleLabel, authorLabel, ratingLabel, priceLabel, descriptionContainerView, favoriteButton, readSampleButton].forEach {
             contentView.addSubview($0)
         }
+        
+        // Add description label inside container
+        descriptionContainerView.addSubview(descriptionLabel)
 
         // scrollView constraints
         scrollView.snp.makeConstraints { make in
@@ -177,13 +199,20 @@ final class BookDetailView: UIView {
             make.leading.greaterThanOrEqualTo(ratingLabel.snp.trailing).offset(8)
         }
 
-        descriptionLabel.snp.makeConstraints { make in
-            make.top.equalTo(ratingLabel.snp.bottom).offset(12)
+        descriptionContainerView.snp.makeConstraints { make in
+            make.top.equalTo(ratingLabel.snp.bottom).offset(20)
             make.leading.trailing.equalToSuperview().inset(16)
         }
+        
+        descriptionLabel.snp.makeConstraints { make in
+            make.edges.equalToSuperview().inset(16)
+        }
+        
+        // Add gradient overlay to fade out the last line
+        descriptionContainerView.layer.addSublayer(gradientOverlay)
 
         favoriteButton.snp.makeConstraints { make in
-            make.top.equalTo(descriptionLabel.snp.bottom).offset(20)
+            make.top.equalTo(descriptionContainerView.snp.bottom).offset(20)
             make.leading.equalToSuperview().inset(16)
             make.height.equalTo(48)
             make.bottom.equalToSuperview().inset(24)
@@ -196,6 +225,11 @@ final class BookDetailView: UIView {
             make.height.equalTo(favoriteButton)
             make.width.equalTo(favoriteButton)
         }
+    }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        gradientOverlay.frame = descriptionContainerView.bounds
     }
 
     // MARK: - Configure

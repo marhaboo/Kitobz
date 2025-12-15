@@ -205,7 +205,6 @@ final class RoundCardCell: UICollectionViewCell {
     }
 
     private func applySeenState() {
-        // If seen → hide gradient, show gray ring
         gradientRing.isHidden = seen
         gradientRing.mask?.isHidden = seen
         grayRing.isHidden = !seen

@@ -128,7 +128,6 @@ final class StoriesViewerViewController: UIViewController {
             make.edges.equalToSuperview()
         }
 
-        // Make sure header controls are on top initially
         view.bringSubviewToFront(progressStack)
         view.bringSubviewToFront(closeButton)
         view.bringSubviewToFront(ctaButton)
@@ -160,19 +159,16 @@ final class StoriesViewerViewController: UIViewController {
         currentIndex = idx
         let name = story.images[idx]
 
-        // Always clear previous GIF state
         imageView.clear()
 
-        // 1) Try a Data Asset (GIF stored in asset catalog)
+
         if let dataAsset = NSDataAsset(name: name),
            let gif = try? UIImage(gifData: dataAsset.data) {
             imageView.setGifImage(gif, loopCount: -1)
         }
-        // 2) Try a normal image from asset catalog
         else if let image = UIImage(named: name) {
             imageView.image = image
         }
-        // 3) Try a loose bundle file "name.gif"
         else if let path = Bundle.main.path(forResource: name, ofType: "gif"),
                 let data = try? Data(contentsOf: URL(fileURLWithPath: path)),
                 let gif = try? UIImage(gifData: data) {
@@ -182,7 +178,6 @@ final class StoriesViewerViewController: UIViewController {
             imageView.image = nil
         }
 
-        // Center first image, fill others
         if idx == 0 {
             imageView.contentMode = .scaleAspectFit
             imageView.backgroundColor = .black
@@ -190,8 +185,8 @@ final class StoriesViewerViewController: UIViewController {
 
             imageContainer.snp.remakeConstraints { make in
                 make.center.equalToSuperview()
-                make.leading.greaterThanOrEqualTo(view).offset(16)
-                make.trailing.lessThanOrEqualTo(view).offset(-16)
+                make.leading.equalToSuperview()
+                make.trailing.equalToSuperview()
                 make.top.greaterThanOrEqualTo(view.safeAreaLayoutGuide.snp.top).offset(32)
                 make.bottom.lessThanOrEqualTo(view.safeAreaLayoutGuide.snp.bottom).offset(-32)
             }
@@ -278,7 +273,6 @@ final class StoriesViewerViewController: UIViewController {
         holdGesture.minimumPressDuration = 0.1
         view.addGestureRecognizer(holdGesture)
 
-        // Overlay views for left/right tap zones, starting BELOW the header (progress + close)
         let leftView = UIView()
         let rightView = UIView()
         leftView.backgroundColor = .clear
@@ -304,7 +298,6 @@ final class StoriesViewerViewController: UIViewController {
         leftView.addGestureRecognizer(leftTap)
         rightView.addGestureRecognizer(rightTap)
 
-        // Ensure header controls remain tappable
         view.bringSubviewToFront(progressStack)
         view.bringSubviewToFront(closeButton)
         view.bringSubviewToFront(ctaButton)

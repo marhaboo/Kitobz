@@ -9,6 +9,8 @@ import UIKit
 import SnapKit
 
 final class ReviewSectionView: UIView {
+    
+    weak var presentingViewController: UIViewController?
 
     private let titleLabel: UILabel = {
         let l = UILabel()
@@ -149,6 +151,50 @@ final class ReviewSectionView: UIView {
         let centerPoint = convert(collectionView.center, to: collectionView)
         return collectionView.indexPathForItem(at: centerPoint)
     }
+    
+    private func showReviewMenu(for indexPath: IndexPath) {
+        let review = items[indexPath.item]
+        
+        let actionSheet = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
+        
+        let hideAction = UIAlertAction(title: "Скрыть отзывы пользователя", style: .default) { [weak self] _ in
+            self?.hideUserReviews(userName: review.userName)
+        }
+        
+        let reportAction = UIAlertAction(title: "Пожаловаться", style: .default) { [weak self] _ in
+            self?.reportReview(review)
+        }
+        
+        let cancelAction = UIAlertAction(title: "Отмена", style: .cancel)
+        
+        actionSheet.addAction(hideAction)
+        actionSheet.addAction(reportAction)
+        actionSheet.addAction(cancelAction)
+        
+        if let vc = presentingViewController {
+            vc.present(actionSheet, animated: true)
+        }
+    }
+    
+    private func hideUserReviews(userName: String) {
+        items.removeAll { $0.userName == userName }
+        print("Hidden all reviews from: \(userName)")
+    }
+    
+    private func reportReview(_ review: ReviewItem) {
+        print("Reported review from: \(review.userName)")
+        
+        let alert = UIAlertController(
+            title: "Жалоба отправлена",
+            message: "Спасибо за обратную связь. Мы рассмотрим жалобу в ближайшее время.",
+            preferredStyle: .alert
+        )
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        
+        if let vc = presentingViewController {
+            vc.present(alert, animated: true)
+        }
+    }
 }
 
 extension ReviewSectionView: UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
@@ -161,6 +207,9 @@ extension ReviewSectionView: UICollectionViewDataSource, UICollectionViewDelegat
             return UICollectionViewCell()
         }
         cell.configure(with: items[indexPath.item])
+        cell.onMenuTapped = { [weak self] in
+            self?.showReviewMenu(for: indexPath)
+        }
         return cell
     }
 

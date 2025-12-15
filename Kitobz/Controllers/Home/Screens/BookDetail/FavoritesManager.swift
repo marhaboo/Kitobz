@@ -7,6 +7,10 @@
 
 import Foundation
 
+extension Notification.Name {
+    static let favoritesDidChange = Notification.Name("FavoritesDidChangeNotification")
+}
+
 final class FavoritesManager {
     static let shared = FavoritesManager()
     private let key = "kitobz_favorite_book_ids_v1"
@@ -21,19 +25,35 @@ final class FavoritesManager {
     }
 
     func isFavorite(bookID: String) -> Bool {
-        return storage.contains(bookID)
+        storage.contains(bookID)
     }
 
+    // Public: normal path posts notification
     func setFavorite(bookID: String, isFavorite: Bool) {
+        applyFavorite(bookID: bookID, isFavorite: isFavorite, shouldNotify: true)
+    }
+
+    // Internal: used for seeding to avoid notification loops
+    func setFavoriteSilently(bookID: String, isFavorite: Bool) {
+        applyFavorite(bookID: bookID, isFavorite: isFavorite, shouldNotify: false)
+    }
+
+    private func applyFavorite(bookID: String, isFavorite: Bool, shouldNotify: Bool) {
         if isFavorite {
             storage.insert(bookID)
         } else {
             storage.remove(bookID)
         }
         UserDefaults.standard.set(Array(storage), forKey: key)
+
+        if shouldNotify {
+            DispatchQueue.main.async {
+                NotificationCenter.default.post(name: .favoritesDidChange, object: nil)
+            }
+        }
     }
 
     func allFavoriteIDs() -> [String] {
-        return Array(storage)
+        Array(storage)
     }
 }

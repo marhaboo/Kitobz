@@ -10,6 +10,8 @@ import SnapKit
 
 final class ReviewCardCell: UICollectionViewCell {
     static let id = "ReviewCardCell"
+    
+    var onMenuTapped: (() -> Void)?
 
     private let cardView: UIView = {
         let v = UIView()
@@ -68,6 +70,15 @@ final class ReviewCardCell: UICollectionViewCell {
         iv.setContentHuggingPriority(.required, for: .horizontal)
         return iv
     }()
+    
+    private let menuButton: UIButton = {
+        let b = UIButton(type: .system)
+        let config = UIImage.SymbolConfiguration(pointSize: 18, weight: .semibold)
+        let image = UIImage(systemName: "ellipsis", withConfiguration: config)
+        b.setImage(image, for: .normal)
+        b.tintColor = .label
+        return b
+    }()
 
     private let separator: UIView = {
         let v = UIView()
@@ -125,9 +136,10 @@ final class ReviewCardCell: UICollectionViewCell {
         nameDateStack.axis = .vertical
         nameDateStack.spacing = 2
 
-        let headerStack = UIStackView(arrangedSubviews: [nameDateStack, UIView(), moodImageView])
+        let headerStack = UIStackView(arrangedSubviews: [nameDateStack, UIView(), moodImageView, menuButton])
         headerStack.axis = .horizontal
         headerStack.alignment = .center
+        headerStack.spacing = 8
 
         let rightColumn = UIStackView(arrangedSubviews: [headerStack, separator, reviewLabel])
         rightColumn.axis = .vertical
@@ -159,6 +171,10 @@ final class ReviewCardCell: UICollectionViewCell {
         separator.snp.makeConstraints { make in
             make.height.equalTo(1)
         }
+        
+        menuButton.snp.makeConstraints { make in
+            make.width.height.equalTo(30)
+        }
 
         // -------------------- Stars --------------------
         for _ in 0..<5 {
@@ -170,6 +186,8 @@ final class ReviewCardCell: UICollectionViewCell {
             }
             starsStack.addArrangedSubview(star)
         }
+        
+        menuButton.addTarget(self, action: #selector(handleMenuTap), for: .touchUpInside)
     }
 
     required init?(coder: NSCoder) {
@@ -186,6 +204,7 @@ final class ReviewCardCell: UICollectionViewCell {
         reviewLabel.text = nil
         updateStars(rating: 0)
         moodImageView.image = nil
+        onMenuTapped = nil
     }
 
     func configure(with item: ReviewItem) {
@@ -216,5 +235,9 @@ final class ReviewCardCell: UICollectionViewCell {
         case .sad:
             return UIImage(systemName: "face.frown")?.withRenderingMode(.alwaysTemplate)
         }
+    }
+    
+    @objc private func handleMenuTap() {
+        onMenuTapped?()
     }
 }

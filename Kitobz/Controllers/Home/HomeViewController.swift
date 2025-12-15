@@ -1,5 +1,3 @@
-//
-<<<<<<< HEAD
 //  HomeViewController.swift
 //  Kitobz
 //
@@ -34,11 +32,7 @@ final class HomeViewController: UIViewController {
     private var quotes: [Quote] = []
     private var roundCardItems: [RoundCardItem] = []
     private var socialMediaItems: [SocialMediaItem] = []
-
-    // Stories
     private var stories: [Story] = []
-
-    // Keep a weak reference to the presented stories navigation controller
     private weak var storiesNavController: UINavigationController?
 
     override func viewDidLoad() {
@@ -50,6 +44,7 @@ final class HomeViewController: UIViewController {
         loadData()
         setupBookTapHandlers()
         setupStoriesTapHandler()
+        setupShowAllHandlers()
     }
 
     private func configureNavigationBar() {
@@ -164,11 +159,55 @@ final class HomeViewController: UIViewController {
     }
 
     private func loadData() {
-        allBooks = BooksProvider.baseBooks()
+        // 1) Load base books (without reviews)
+        let baseBooks = BooksProvider.baseBooks()
+
+        // 2) Load all reviews
+        reviews = ReviewsProvider.loadReviews(for: baseBooks)
+
+        // 3) Group reviews by bookId
+        let reviewsByBookId: [String: [ReviewItem]] = Dictionary(grouping: reviews, by: { $0.bookId })
+
+        // 4) Merge reviews into books and recompute rating (average of ReviewItem.rating)
+        let updatedBooks: [Book] = baseBooks.map { book in
+            let bookReviews = reviewsByBookId[book.id] ?? []
+            let newRating: Double
+            if !bookReviews.isEmpty {
+                let sum = bookReviews.reduce(0) { $0 + $1.rating }
+                let avg = Double(sum) / Double(bookReviews.count)
+                newRating = avg
+            } else {
+                // Fallback to seeded rating if no reviews
+                newRating = book.rating
+            }
+
+            return Book(
+                coverImageName: book.coverImageName,
+                title: book.title,
+                author: book.author,
+                price: book.price,
+                oldPrice: book.oldPrice,
+                discountText: book.discountText,
+                id: book.id,
+                bookDescription: book.bookDescription,
+                rating: newRating,
+                ageRating: book.ageRating,
+                language: book.language,
+                coverType: book.coverType,
+                pageCount: book.pageCount,
+                publishYear: book.publishYear,
+                reviews: bookReviews,
+                quotes: book.quotes,
+                otherBooksByAuthor: book.otherBooksByAuthor,
+                isFavorite: FavoritesManager.shared.isFavorite(bookID: book.id) || book.isFavorite
+            )
+        }
+
+        allBooks = updatedBooks
 
         if allBooks.count >= 5 {
-            bestBooks = [allBooks[0], allBooks[1], allBooks[2], allBooks[4]]
-            recommendedBooks = [allBooks[4], allBooks[3], allBooks[0], allBooks[1]]
+            bestBooks = [allBooks[0], allBooks[3], allBooks[0], allBooks[4]]
+            recommendedBooks = [allBooks[4], allBooks[3], allBooks[0], allBooks[4]]
             discountBooks = [allBooks[1], allBooks[2], allBooks[1], allBooks[2]]
         } else {
             bestBooks = allBooks
@@ -176,7 +215,7 @@ final class HomeViewController: UIViewController {
             discountBooks = allBooks
         }
 
-        reviews = ReviewsProvider.loadReviews(for: allBooks)
+        // 6) Load other data
         banners = BannersProvider.loadBanners()
         quotes = QuotesProvider.loadQuotes()
         roundCardItems = RoundCardsProvider.loadItems()
@@ -187,6 +226,7 @@ final class HomeViewController: UIViewController {
         roundCardSection.items = stories.map { RoundCardItem(title: $0.title, imageName: $0.coverImageName) }
         roundCardSection.seenFlags = stories.map { $0.isSeen }
 
+        // 7) Bind data to sections
         bannerSection.setBanners(banners)
         bestBooksSection.setBooks(bestBooks)
         recommendedSection.setBooks(recommendedBooks)
@@ -212,6 +252,24 @@ final class HomeViewController: UIViewController {
         roundCardSection.onItemSelected = { [weak self] index in
             self?.presentStory(at: index)
         }
+    }
+
+    // NEW: handle "Все" taps
+    private func setupShowAllHandlers() {
+        bestBooksSection.onShowAll = { [weak self] books, title in
+            self?.showAllBooks(books, title: title)
+        }
+        recommendedSection.onShowAll = { [weak self] books, title in
+            self?.showAllBooks(books, title: title)
+        }
+        discountSection.onShowAll = { [weak self] books, title in
+            self?.showAllBooks(books, title: title)
+        }
+    }
+
+    private func showAllBooks(_ books: [Book], title: String) {
+        let vc = AllBooksViewController(title: title, books: books)
+        navigationController?.pushViewController(vc, animated: true)
     }
 
     private func presentStory(at index: Int) {
@@ -305,25 +363,4 @@ final class HomeViewController: UIViewController {
         applyAppearanceForCurrentStyle()
     }
 }
-=======
-//  ViewController.swift
-//  Kitobz
-//
-//  Created by Boynurodova Marhabo on 01/12/25.
-//
 
-import UIKit
-
-class HomeViewController: UIViewController {
-
-    override func viewDidLoad() {
-        super.viewDidLoad()
-
-        
-    }
-
-    
-
-}
-
->>>>>>> madina-favorites

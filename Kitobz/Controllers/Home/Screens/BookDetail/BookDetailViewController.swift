@@ -38,6 +38,9 @@ final class BookDetailViewController: UIViewController {
     private let sectionTitleLabel = UILabel()
     private let descriptionLabel = UILabel()
     private let readMoreButton = UIButton(type: .system)
+    
+    private let bookRatingView = BookRatingView()
+
 
     private var isExpanded = false
 
@@ -97,16 +100,19 @@ final class BookDetailViewController: UIViewController {
         let backButtonGlass = createGlassButton(for: backButton)
         let favoriteButtonGlass = createGlassButton(for: favoriteButton)
 
-        contentView.addSubviews([bookImageView, bookTitleLabel, authorLabel, backButtonGlass, favoriteButtonGlass])
+        contentView.addSubviews([bookImageView, bookTitleLabel, authorLabel])
+        
+        // Add buttons to main view instead of contentView so they don't scroll
+        view.addSubviews([backButtonGlass, favoriteButtonGlass])
 
         backButtonGlass.snp.makeConstraints {
-            $0.top.equalTo(contentView).offset(view.safeAreaInsets.top + 8)
+            $0.top.equalTo(view.safeAreaLayoutGuide.snp.top).offset(8)
             $0.leading.equalToSuperview().offset(16)
             $0.width.height.equalTo(40)
         }
 
         favoriteButtonGlass.snp.makeConstraints {
-            $0.top.equalTo(contentView).offset(view.safeAreaInsets.top + 8)
+            $0.top.equalTo(view.safeAreaLayoutGuide.snp.top).offset(8)
             $0.trailing.equalToSuperview().inset(16)
             $0.width.height.equalTo(40)
         }
@@ -190,7 +196,7 @@ final class BookDetailViewController: UIViewController {
 
         descriptionLabel.font = .systemFont(ofSize: 15)
         descriptionLabel.numberOfLines = 5
-        descriptionLabel.lineBreakMode = .byTruncatingTail
+        descriptionLabel.lineBreakMode = .byWordWrapping
         descriptionLabel.textColor = .label
 
         if #available(iOS 15.0, *) {
@@ -212,6 +218,8 @@ final class BookDetailViewController: UIViewController {
 
         bottomCardView.addSubview(descriptionLabel)
         bottomCardView.addSubview(readMoreButton)
+        bottomCardView.addSubview(bookRatingView)
+
 
         descriptionLabel.snp.makeConstraints {
             $0.top.equalTo(sectionTitleLabel.snp.bottom).offset(8)
@@ -223,8 +231,18 @@ final class BookDetailViewController: UIViewController {
         readMoreButton.snp.makeConstraints {
             $0.top.equalTo(descriptionLabel.snp.bottom).offset(6)
             $0.leading.equalTo(descriptionLabel)
+        }
+
+
+        
+        bookRatingView.snp.makeConstraints {
+            $0.top.equalTo(readMoreButton.snp.bottom).offset(20)
+            $0.leading.equalToSuperview().offset(16)
+            $0.trailing.equalToSuperview().inset(16)
             $0.bottom.equalToSuperview().inset(24)
         }
+
+
     }
 
     private func createGlassButton(for button: UIButton) -> GlassButtonContainer {
@@ -240,11 +258,21 @@ final class BookDetailViewController: UIViewController {
         book.isFavorite = FavoritesManager.shared.isFavorite(bookID: book.id)
         
         let reviewsToShow = injectedReviews ?? book.reviews
-        ratingView.configure(stars: book.rating, count: reviewsToShow.count)
+        ratingView.configure(
+            stars: book.rating,
+            count: reviewsToShow.count
+        )
+
+        bookRatingView.configure(
+            average: book.rating,
+            count: reviewsToShow.count
+        )
+
+
         reviewsView.configure(value: "\(reviewsToShow.count)", title: "отзывов", valueFont: 18, titleFont: 11)
         pagesView.configure(value: "\(book.pageCount)", title: "стр.", valueFont: 18, titleFont: 11)
         ageView.configure(value: "\(book.ageRating)", title: "возраст", valueFont: 18, titleFont: 11)
-
+        
         languageLabel.text = book.language
         yearLabel.text = "\(book.publishYear) год"
 
@@ -252,7 +280,7 @@ final class BookDetailViewController: UIViewController {
 
         isExpanded = false
         descriptionLabel.numberOfLines = 5
-        descriptionLabel.lineBreakMode = .byTruncatingTail
+        descriptionLabel.lineBreakMode = .byWordWrapping
         if #available(iOS 15.0, *) {
             readMoreButton.configuration?.title = "Далее"
         } else {
@@ -276,37 +304,19 @@ final class BookDetailViewController: UIViewController {
     }
 
     @objc private func toggleReadMore() {
-        let anchorInScroll = descriptionLabel.convert(CGPoint.zero, to: scrollView).y
-        let originalOffsetY = scrollView.contentOffset.y
-        let anchorDelta = anchorInScroll - originalOffsetY
-
         isExpanded.toggle()
-        descriptionLabel.alpha = 0.98
-        descriptionLabel.numberOfLines = isExpanded ? 0 : 5
-        descriptionLabel.lineBreakMode = isExpanded ? .byWordWrapping : .byTruncatingTail
-        if #available(iOS 15.0, *) {
-            readMoreButton.configuration?.title = isExpanded ? "Свернуть" : "Далее"
-        } else {
-            readMoreButton.setTitle(isExpanded ? "Свернуть" : "Далее", for: .normal)
-        }
-
-        CATransaction.begin()
-        CATransaction.setDisableActions(true)
-
-        let animator = UIViewPropertyAnimator(duration: 0.28, curve: .easeInOut) {
+        
+        UIView.animate(withDuration: 0.3, animations: {
+            self.descriptionLabel.numberOfLines = self.isExpanded ? 0 : 5
+            
+            if #available(iOS 15.0, *) {
+                self.readMoreButton.configuration?.title = self.isExpanded ? "Свернуть" : "Далее"
+            } else {
+                self.readMoreButton.setTitle(self.isExpanded ? "Свернуть" : "Далее", for: .normal)
+            }
+            
             self.view.layoutIfNeeded()
-            let newAnchorInScroll = self.descriptionLabel.convert(CGPoint.zero, to: self.scrollView).y
-            let targetOffsetY = newAnchorInScroll - anchorDelta
-            let clamped = max(0, min(targetOffsetY, self.scrollView.contentSize.height - self.scrollView.bounds.height))
-            self.scrollView.contentOffset.y = clamped
-            self.descriptionLabel.alpha = 1.0
-        }
-
-        animator.addCompletion { _ in
-            CATransaction.commit()
-        }
-
-        animator.startAnimation()
+        })
     }
 
     private func updateFavoriteButton(animated: Bool = true) {
