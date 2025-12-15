@@ -292,6 +292,10 @@ class CheckoutViewController: UIViewController {
         
         guard validateInline() else { return }
         
+        // Создаём заказ
+        let order = Order(items: selectedItems, totalAmount: totalAmount, date: Date())
+        OrdersManager.shared.addOrder(order) // Сохраняем в историю заказов
+        
         let alert = UIAlertController(
             title: "Успешно",
             message: "Ваш заказ оформлен!",
