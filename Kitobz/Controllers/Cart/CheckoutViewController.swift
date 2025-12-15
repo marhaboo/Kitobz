@@ -13,6 +13,9 @@ class CheckoutViewController: UIViewController {
     // MARK: - Выбранные книги
     var selectedItems: [CartItem] = []
     
+    // MARK: - Итоговая сумма из корзины
+    var totalAmount: Int = 0
+    
     // MARK: - Адрес
     private let addressCardView: UIView = {
         let view = UIView()
@@ -35,11 +38,29 @@ class CheckoutViewController: UIViewController {
         return tf
     }()
     
+    private let nameErrorLabel: UILabel = {
+        let label = UILabel()
+        label.text = "Введите имя"
+        label.textColor = .red
+        label.font = .systemFont(ofSize: 12)
+        label.isHidden = true
+        return label
+    }()
+    
     private let addressTextField: UITextField = {
         let tf = UITextField()
         tf.placeholder = "Адрес доставки"
         tf.borderStyle = .roundedRect
         return tf
+    }()
+    
+    private let addressErrorLabel: UILabel = {
+        let label = UILabel()
+        label.text = "Введите адрес"
+        label.textColor = .red
+        label.font = .systemFont(ofSize: 12)
+        label.isHidden = true
+        return label
     }()
     
     private let phoneTextField: UITextField = {
@@ -49,6 +70,16 @@ class CheckoutViewController: UIViewController {
         tf.keyboardType = .phonePad
         return tf
     }()
+    
+    private let phoneErrorLabel: UILabel = {
+        let label = UILabel()
+        label.text = "Введите номер телефона"
+        label.textColor = .red
+        label.font = .systemFont(ofSize: 12)
+        label.isHidden = true
+        return label
+    }()
+    
     
     // MARK: - Метод оплаты
     private let paymentCardView: UIView = {
@@ -71,6 +102,7 @@ class CheckoutViewController: UIViewController {
         return sc
     }()
     
+    
     // MARK: - Итоговая сумма
     private let totalCardView: UIView = {
         let view = UIView()
@@ -86,11 +118,12 @@ class CheckoutViewController: UIViewController {
         return label
     }()
     
+    
     // MARK: - Подтвердить заказ
     private let confirmButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitle("Подтвердить заказ", for: .normal)
-        button.backgroundColor = .red
+        button.backgroundColor = UIColor(named: "AccentColor")
         button.tintColor = .white
         button.layer.cornerRadius = 10
         button.titleLabel?.font = .boldSystemFont(ofSize: 18)
@@ -98,23 +131,32 @@ class CheckoutViewController: UIViewController {
         return button
     }()
     
+    
     // MARK: - ViewDidLoad
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .white
         title = "Оформление заказа"
+ 
         setupLayout()
         updateTotal()
+        
+        phoneTextField.delegate = self
     }
+    
     
     // MARK: - Layout с SnapKit
     private func setupLayout() {
+        
         // Адрес
         view.addSubview(addressCardView)
         addressCardView.addSubview(addressTitleLabel)
         addressCardView.addSubview(nameTextField)
+        addressCardView.addSubview(nameErrorLabel)
         addressCardView.addSubview(addressTextField)
+        addressCardView.addSubview(addressErrorLabel)
         addressCardView.addSubview(phoneTextField)
+        addressCardView.addSubview(phoneErrorLabel)
         
         addressCardView.snp.makeConstraints { make in
             make.top.equalTo(view.safeAreaLayoutGuide).offset(16)
@@ -131,17 +173,33 @@ class CheckoutViewController: UIViewController {
             make.height.equalTo(44)
         }
         
+        nameErrorLabel.snp.makeConstraints { make in
+            make.top.equalTo(nameTextField.snp.bottom).offset(4)
+            make.left.right.equalToSuperview().inset(16)
+        }
+        
         addressTextField.snp.makeConstraints { make in
-            make.top.equalTo(nameTextField.snp.bottom).offset(12)
+            make.top.equalTo(nameErrorLabel.snp.bottom).offset(12)
             make.left.right.equalToSuperview().inset(16)
             make.height.equalTo(44)
         }
         
+        addressErrorLabel.snp.makeConstraints { make in
+            make.top.equalTo(addressTextField.snp.bottom).offset(4)
+            make.left.right.equalToSuperview().inset(16)
+        }
+        
         phoneTextField.snp.makeConstraints { make in
-            make.top.equalTo(addressTextField.snp.bottom).offset(12)
-            make.left.right.bottom.equalToSuperview().inset(16)
+            make.top.equalTo(addressErrorLabel.snp.bottom).offset(12)
+            make.left.right.equalToSuperview().inset(16)
             make.height.equalTo(44)
         }
+        
+        phoneErrorLabel.snp.makeConstraints { make in
+            make.top.equalTo(phoneTextField.snp.bottom).offset(4)
+            make.left.right.bottom.equalToSuperview().inset(16)
+        }
+        
         
         // Метод оплаты
         view.addSubview(paymentCardView)
@@ -163,6 +221,7 @@ class CheckoutViewController: UIViewController {
             make.height.equalTo(32)
         }
         
+        
         // Итоговая сумма
         view.addSubview(totalCardView)
         totalCardView.addSubview(totalLabel)
@@ -176,6 +235,7 @@ class CheckoutViewController: UIViewController {
             make.edges.equalToSuperview().inset(16)
         }
         
+        
         // Подтвердить заказ
         view.addSubview(confirmButton)
         confirmButton.snp.makeConstraints { make in
@@ -185,24 +245,124 @@ class CheckoutViewController: UIViewController {
         }
     }
     
-    // MARK: - Подсчёт итоговой суммы
-    private func updateTotal() {
-        let total = selectedItems.reduce(0) { $0 + $1.price }
-        totalLabel.text = String(format: "Итог: %.2f сомони", total)
+    
+    // MARK: - Валидация полей (показ ошибок под полями)
+    private func validateInline() -> Bool {
+        let name = nameTextField.text?.trimmingCharacters(in: .whitespaces) ?? ""
+        let address = addressTextField.text?.trimmingCharacters(in: .whitespaces) ?? ""
+        let phone = phoneTextField.text?.trimmingCharacters(in: .whitespaces) ?? ""
+        
+        var isValid = true
+        
+        // Имя
+        if name.isEmpty {
+            nameErrorLabel.isHidden = false
+            isValid = false
+        } else {
+            nameErrorLabel.isHidden = true
+        }
+        
+        // Адрес
+        if address.isEmpty {
+            addressErrorLabel.isHidden = false
+            isValid = false
+        } else {
+            addressErrorLabel.isHidden = true
+        }
+        
+        // Телефон
+        if phone.isEmpty || phone == "+992 " {
+            phoneErrorLabel.text = "Введите номер телефона"
+            phoneErrorLabel.isHidden = false
+            isValid = false
+        } else if phone.count < 14 {
+            phoneErrorLabel.text = "Введите номер полностью"
+            phoneErrorLabel.isHidden = false
+            isValid = false
+        } else {
+            phoneErrorLabel.isHidden = true
+        }
+        
+        return isValid
     }
+    
     
     // MARK: - Подтвердить заказ
     @objc private func didTapConfirm() {
-        let name = nameTextField.text ?? ""
-        let address = addressTextField.text ?? ""
-        let phone = phoneTextField.text ?? ""
-        let paymentMethod = paymentSegmentedControl.selectedSegmentIndex == 0 ? "Картой" : "Наличными"
         
-        print("Заказ оформлен:")
-        print("Имя: \(name)")
-        print("Адрес: \(address)")
-        print("Телефон: \(phone)")
-        print("Метод оплаты: \(paymentMethod)")
-        print(totalLabel.text ?? "")
+        guard validateInline() else { return }
+        
+        // Создаём заказ
+        let order = Order(items: selectedItems, totalAmount: totalAmount, date: Date())
+        OrdersManager.shared.addOrder(order) // Сохраняем в историю заказов
+        
+        let alert = UIAlertController(
+            title: "Успешно",
+            message: "Ваш заказ оформлен!",
+            preferredStyle: .alert
+        )
+        
+        alert.addAction(
+            UIAlertAction(title: "OK", style: .default) { [weak self] _ in
+                guard let self = self else { return }
+                
+                // Переход на Home Tab
+                if let tabBarController = self.view.window?.rootViewController as? TabBarController {
+                    tabBarController.selectedIndex = 0 
+                }
+                
+                // Закрываем Checkout
+                self.navigationController?.popToRootViewController(animated: false)
+            }
+        )
+
+        present(alert, animated: true)
+    }
+    
+    
+    // MARK: - Подсчёт итоговой суммы
+    private func updateTotal() {
+        totalLabel.text = "Итог: \(totalAmount) сомони"
+    }
+}
+
+extension CheckoutViewController: UITextFieldDelegate {
+
+    func textFieldDidBeginEditing(_ textField: UITextField) {
+        guard textField == phoneTextField else { return }
+        
+        // Если поле пустое, вставляем "+992 "
+        if textField.text?.isEmpty == true {
+            textField.text = "+992 "
+        }
+    }
+
+    func textField(
+        _ textField: UITextField,
+        shouldChangeCharactersIn range: NSRange,
+        replacementString string: String
+    ) -> Bool {
+        
+        guard textField == phoneTextField else { return true }
+        let currentText = textField.text ?? ""
+        
+        // Нельзя удалить "+992 "
+        if currentText.hasPrefix("+992 ") && range.location < 5 {
+            return false
+        }
+        
+        // Только цифры
+        if !string.isEmpty &&
+            !CharacterSet.decimalDigits.isSuperset(of: CharacterSet(charactersIn: string)) {
+            return false
+        }
+        
+        // Максимальная длина: "+992 " + 9 цифр = 14 символов
+        let newText = (currentText as NSString).replacingCharacters(in: range, with: string)
+        if newText.count > 14 {
+            return false
+        }
+        
+        return true
     }
 }

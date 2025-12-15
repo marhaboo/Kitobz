@@ -142,6 +142,9 @@ extension ProfileViewController: UITableViewDelegate, UITableViewDataSource {
         if item.isDestructive {
             // Логика выхода
             handleLogout()
+        } else if item.title == "Мои заказы" {
+            let ordersVC = MyOrdersViewController()
+            navigationController?.pushViewController(ordersVC, animated: true) 
         } else {
             print("Нажата опция: \(item.title)")
             // Логика перехода на другой экран

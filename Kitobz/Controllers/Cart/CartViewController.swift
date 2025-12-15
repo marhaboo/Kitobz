@@ -47,7 +47,7 @@ class CartViewController: UIViewController {
         let button = UIButton(type: .system)
         button.setTitle("Оформить заказ", for: .normal)
         button.tintColor = .white
-        button.backgroundColor = .red
+        button.backgroundColor = UIColor(named: "AccentColor")
         button.layer.cornerRadius = 12
         button.titleLabel?.font = .boldSystemFont(ofSize: 18)
         return button
@@ -108,8 +108,27 @@ class CartViewController: UIViewController {
     }
     
     @objc private func didTapCheckout() {
+        let selectedItems = cartItems.filter { $0.isSelected }
+        
+        // ❗️ Если ничего не выбрано — не пускаем дальше
+        guard !selectedItems.isEmpty else {
+            let alert = UIAlertController(
+                title: "Корзина пуста",
+                message: "Выберите хотя бы одну книгу",
+                preferredStyle: .alert
+            )
+            alert.addAction(UIAlertAction(title: "OK", style: .default))
+            present(alert, animated: true)
+            return
+        }
+        
+        // Считаем итоговую сумму
+        let total = selectedItems.reduce(0) { $0 + $1.price }
+        
         let checkoutVC = CheckoutViewController()
-        checkoutVC.selectedItems = cartItems.filter { $0.isSelected }
+        checkoutVC.selectedItems = selectedItems
+        checkoutVC.totalAmount = total   // ✅ ПЕРЕДАЁМ СУММУ
+        
         navigationController?.pushViewController(checkoutVC, animated: true)
     }
 }
