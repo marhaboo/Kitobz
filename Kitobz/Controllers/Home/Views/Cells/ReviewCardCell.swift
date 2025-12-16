@@ -2,7 +2,7 @@
 //  ReviewCardCell.swift
 //  Kitobz
 //
-//  Created by Boymurodova Marhabo on 04/12/25.
+//  Created by Boyмuroдова Marhabo on 04/12/25.
 //
 
 import UIKit
@@ -11,48 +11,30 @@ import SnapKit
 final class ReviewCardCell: UICollectionViewCell {
     static let id = "ReviewCardCell"
     
-    var onMenuTapped: (() -> Void)?
+    // MARK: - Callbacks
+    var onMoreTapped: (() -> Void)?
 
+    // MARK: - State
+    private var fullText: String = ""
+
+    // MARK: - Views
+    
     private let cardView: UIView = {
         let v = UIView()
-        v.backgroundColor = UIColor(named: "cardBg") ?? .systemBackground
-        v.layer.cornerRadius = 14
+        v.layer.cornerRadius = 24
         v.layer.masksToBounds = true
+        v.backgroundColor = UIColor(named: "cardBg") ?? .secondarySystemBackground
         return v
     }()
 
-    private let coverImageView: UIImageView = {
-        let iv = UIImageView()
-        iv.contentMode = .scaleAspectFit
-        iv.clipsToBounds = true
-        iv.layer.cornerRadius = 8
-        iv.backgroundColor = .clear
-        return iv
-    }()
-
-    private let starsStack: UIStackView = {
-        let s = UIStackView()
-        s.axis = .horizontal
-        s.spacing = 4
-        s.alignment = .center
-        return s
-    }()
-
-    private let bookTitleLabel: UILabel = {
-        let l = UILabel()
-        l.font = .systemFont(ofSize: 13, weight: .semibold)
-        l.textColor = .label
-        l.numberOfLines = 2
-        l.lineBreakMode = .byWordWrapping
-        l.setContentHuggingPriority(.defaultLow, for: .vertical)
-        l.setContentCompressionResistancePriority(.required, for: .vertical)
-        return l
-    }()
-
+    // Header
+    private let avatarView = InitialsAvatarView()
+    
     private let nameLabel: UILabel = {
         let l = UILabel()
         l.font = .systemFont(ofSize: 16, weight: .semibold)
         l.textColor = .label
+        l.numberOfLines = 1
         return l
     }()
 
@@ -60,184 +42,194 @@ final class ReviewCardCell: UICollectionViewCell {
         let l = UILabel()
         l.font = .systemFont(ofSize: 12, weight: .regular)
         l.textColor = .secondaryLabel
+        l.numberOfLines = 1
         return l
     }()
 
-    private let moodImageView: UIImageView = {
-        let iv = UIImageView()
-        iv.contentMode = .scaleAspectFit
-        iv.tintColor = .systemGreen
-        iv.setContentHuggingPriority(.required, for: .horizontal)
-        return iv
+    private let starsStack: UIStackView = {
+        let s = UIStackView()
+        s.axis = .horizontal
+        s.alignment = .center
+        s.spacing = 4
+        return s
     }()
     
-    private let menuButton: UIButton = {
-        let b = UIButton(type: .system)
-        let config = UIImage.SymbolConfiguration(pointSize: 18, weight: .semibold)
-        let image = UIImage(systemName: "ellipsis", withConfiguration: config)
-        b.setImage(image, for: .normal)
-        b.tintColor = .label
-        return b
-    }()
-
-    private let separator: UIView = {
-        let v = UIView()
-        v.backgroundColor = UIColor.separator.withAlphaComponent(0.22)
-        return v
-    }()
-
-    private let reviewLabel: UILabel = {
+    // Body
+    private let reviewPrimaryLabel: UILabel = {
         let l = UILabel()
-        l.font = .systemFont(ofSize: 14, weight: .regular)
+        l.font = .systemFont(ofSize: 15, weight: .regular)
         l.textColor = .label
-        l.numberOfLines = 4
+        l.numberOfLines = 3
         l.lineBreakMode = .byTruncatingTail
         return l
     }()
+    
+    private let reviewSecondaryLabel: UILabel = {
+        let l = UILabel()
+        l.font = .systemFont(ofSize: 15, weight: .regular)
+        l.textColor = .secondaryLabel
+        l.numberOfLines = 1
+        l.lineBreakMode = .byTruncatingTail
+        return l
+    }()
+    
+    private let moreButton: UIButton = {
+        let b = UIButton(type: .system)
+        b.setTitle("Далее", for: .normal)
+        b.titleLabel?.font = .systemFont(ofSize: 15, weight: .semibold)
+        b.setTitleColor(UIColor(named: "AccentColor") ?? .systemBlue, for: .normal)
+        b.contentEdgeInsets = .zero
+        b.contentHorizontalAlignment = .leading
+        return b
+    }()
 
+    // MARK: - Init
     override init(frame: CGRect) {
         super.init(frame: frame)
-
+        
         contentView.addSubview(cardView)
-
-        // -------------------- LEFT COLUMN --------------------
-        let leftColumn = UIView()
-        cardView.addSubview(leftColumn)
-
-        leftColumn.addSubview(coverImageView)
-        leftColumn.addSubview(starsStack)
-        leftColumn.addSubview(bookTitleLabel)
-
-        coverImageView.snp.makeConstraints { make in
-            make.top.leading.trailing.equalToSuperview()
-            make.width.equalTo(120)
-            make.height.equalTo(140)
-        }
-
-        starsStack.snp.makeConstraints { make in
-            make.top.equalTo(coverImageView.snp.bottom).offset(8)
-            make.leading.trailing.equalToSuperview()
-        }
-
-        bookTitleLabel.snp.makeConstraints { make in
-            make.top.equalTo(starsStack.snp.bottom).offset(8)
-            make.leading.trailing.equalToSuperview()
-            make.height.equalTo(34)
-            make.bottom.equalToSuperview()
-        }
-
-        leftColumn.snp.makeConstraints { make in
-            make.width.equalTo(coverImageView)
-            make.top.bottom.equalToSuperview()
-        }
-
-        // -------------------- RIGHT COLUMN --------------------
+        
+        // Header
         let nameDateStack = UIStackView(arrangedSubviews: [nameLabel, dateLabel])
         nameDateStack.axis = .vertical
         nameDateStack.spacing = 2
-
-        let headerStack = UIStackView(arrangedSubviews: [nameDateStack, UIView(), moodImageView, menuButton])
-        headerStack.axis = .horizontal
-        headerStack.alignment = .center
-        headerStack.spacing = 8
-
-        let rightColumn = UIStackView(arrangedSubviews: [headerStack, separator, reviewLabel])
-        rightColumn.axis = .vertical
-        rightColumn.spacing = 14
-
-        let rightWrapper = UIView()
-        rightWrapper.addSubview(rightColumn)
-        rightColumn.snp.makeConstraints { make in
-            make.top.equalToSuperview().offset(10)
-            make.leading.trailing.bottom.equalToSuperview()
-        }
-
-        // -------------------- HORIZONTAL STACK --------------------
-        let hStack = UIStackView(arrangedSubviews: [leftColumn, rightWrapper])
-        hStack.axis = .horizontal
-        hStack.alignment = .top
-        hStack.spacing = 16
-
-        cardView.addSubview(hStack)
-
+        
+        let headerLeft = UIStackView(arrangedSubviews: [avatarView, nameDateStack])
+        headerLeft.axis = .horizontal
+        headerLeft.alignment = .center
+        headerLeft.spacing = 12
+        
+        let header = UIStackView(arrangedSubviews: [headerLeft, UIView(), starsStack])
+        header.axis = .horizontal
+        header.alignment = .center
+        header.spacing = 8
+        
+        // Body
+        let body = UIStackView(arrangedSubviews: [reviewPrimaryLabel, reviewSecondaryLabel, moreButton])
+        body.axis = .vertical
+        body.spacing = 6
+        
+        let container = UIStackView(arrangedSubviews: [header, body])
+        container.axis = .vertical
+        container.spacing = 12
+        
+        cardView.addSubview(container)
+        
+        // Constraints
         cardView.snp.makeConstraints { make in
-            make.edges.equalToSuperview()
+            make.edges.equalToSuperview().inset(8)
         }
-
-        hStack.snp.makeConstraints { make in
-            make.edges.equalToSuperview().inset(12)
+        avatarView.snp.makeConstraints { make in
+            make.width.height.equalTo(40)
         }
-
-        separator.snp.makeConstraints { make in
-            make.height.equalTo(1)
+        container.snp.makeConstraints { make in
+            make.edges.equalToSuperview().inset(16)
         }
         
-        menuButton.snp.makeConstraints { make in
-            make.width.height.equalTo(30)
-        }
-
-        // -------------------- Stars --------------------
+        // Stars
         for _ in 0..<5 {
-            let star = UIImageView(image: UIImage(systemName: "star.fill"))
-            star.contentMode = .scaleAspectFit
-            star.tintColor = .systemYellow
-            star.snp.makeConstraints { make in
+            let iv = UIImageView(image: UIImage(systemName: "star.fill"))
+            iv.tintColor = .systemYellow
+            iv.contentMode = .scaleAspectFit
+            iv.snp.makeConstraints { make in
                 make.width.height.equalTo(16)
             }
-            starsStack.addArrangedSubview(star)
+            starsStack.addArrangedSubview(iv)
         }
         
-        menuButton.addTarget(self, action: #selector(handleMenuTap), for: .touchUpInside)
+        moreButton.addTarget(self, action: #selector(didTapMore), for: .touchUpInside)
     }
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-
+    
+    // MARK: - Configure
     override func prepareForReuse() {
         super.prepareForReuse()
-        coverImageView.image = nil
         nameLabel.text = nil
         dateLabel.text = nil
-        bookTitleLabel.text = nil
-        bookTitleLabel.textAlignment = .center
-        reviewLabel.text = nil
+        reviewPrimaryLabel.text = nil
+        reviewSecondaryLabel.text = nil
+        fullText = ""
         updateStars(rating: 0)
-        moodImageView.image = nil
-        onMenuTapped = nil
     }
-
+    
     func configure(with item: ReviewItem) {
-        coverImageView.image = UIImage(named: item.bookCoverImageName)
         nameLabel.text = item.userName
         dateLabel.text = item.date
-        bookTitleLabel.text = item.bookTitle
-        reviewLabel.text = item.reviewText
+        avatarView.setInitials(from: item.userName)
+        
+        fullText = item.reviewText
+        let (first, second) = split(text: item.reviewText)
+        reviewPrimaryLabel.text = first
+        reviewSecondaryLabel.text = second
+        
         updateStars(rating: item.rating)
-        moodImageView.image = moodIcon(for: item.mood)
     }
-
+    
     private func updateStars(rating: Int) {
         let clamped = max(0, min(5, rating))
-        for (idx, v) in starsStack.arrangedSubviews.enumerated() {
+        for (i, v) in starsStack.arrangedSubviews.enumerated() {
             guard let iv = v as? UIImageView else { continue }
-            iv.image = UIImage(systemName: idx < clamped ? "star.fill" : "star")
+            iv.image = UIImage(systemName: i < clamped ? "star.fill" : "star")
             iv.tintColor = .systemYellow
         }
     }
+    
+    private func split(text: String) -> (String, String) {
+        if let range = text.firstIndex(of: "。") ?? text.firstIndex(of: ".") {
+            let first = String(text[..<text.index(after: range)]).trimmingCharacters(in: .whitespacesAndNewlines)
+            let second = String(text[text.index(after: range)...]).trimmingCharacters(in: .whitespacesAndNewlines)
+            return (first, second)
+        }
+        let cut = min(max(0, text.count * 7 / 10), text.count)
+        let idx = text.index(text.startIndex, offsetBy: cut)
+        let first = String(text[..<idx]).trimmingCharacters(in: .whitespacesAndNewlines)
+        let second = String(text[idx...]).trimmingCharacters(in: .whitespacesAndNewlines)
+        return (first, second)
+    }
+    
+    // MARK: - Actions
+    @objc private func didTapMore() {
+        // Вместо разворота — вызываем колбэк для перехода на экран "Все отзывы"
+        onMoreTapped?()
+    }
+}
 
-    private func moodIcon(for mood: ReviewMood) -> UIImage? {
-        switch mood {
-        case .happy:
-            return UIImage(systemName: "face.smiling")?.withRenderingMode(.alwaysTemplate)
-        case .neutral:
-            return UIImage(systemName: "face.neutral")?.withRenderingMode(.alwaysTemplate)
-        case .sad:
-            return UIImage(systemName: "face.frown")?.withRenderingMode(.alwaysTemplate)
+// MARK: - Helpers
+private final class InitialsAvatarView: UIView {
+    private let label = UILabel()
+    
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        backgroundColor = UIColor.systemGray4
+        layer.cornerRadius = 20
+        layer.masksToBounds = true
+        
+        label.font = .systemFont(ofSize: 16, weight: .semibold)
+        label.textAlignment = .center
+        label.textColor = .white
+        
+        addSubview(label)
+        label.snp.makeConstraints { make in
+            make.edges.equalToSuperview().inset(4)
         }
     }
     
-    @objc private func handleMenuTap() {
-        onMenuTapped?()
+    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+    
+    func setInitials(from name: String) {
+        let parts = name.split(separator: " ")
+        let initials = parts.prefix(2).compactMap { $0.first }.map { String($0) }.joined()
+        label.text = initials.isEmpty ? "?" : initials.uppercased()
+        backgroundColor = color(for: name)
+    }
+    
+    private func color(for string: String) -> UIColor {
+        let hash = abs(string.hashValue)
+        let hue = CGFloat(hash % 256) / 256.0
+        return UIColor(hue: hue, saturation: 0.5, brightness: 0.75, alpha: 1)
     }
 }
+

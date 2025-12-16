@@ -2,7 +2,7 @@
 //  ReviewSectionView.swift
 //  Kitobz
 //
-//  Created by Boymurodova Marhabo on 04/12/25.
+//  Created by Boymuroдова Marhabo on 04/12/25.
 //
 
 import UIKit
@@ -12,13 +12,22 @@ final class ReviewSectionView: UIView {
     
     weak var presentingViewController: UIViewController?
 
+    // Переход на экран "Все отзывы"
+    var onTapShowAllReviews: (() -> Void)?
+
+    var showLeaveReviewButton: Bool = false {
+        didSet { updateLeaveReviewVisibility() }
+    }
+    
+    var bookTitle: String = ""
+
     private let titleLabel: UILabel = {
         let l = UILabel()
         l.font = UIFont.systemFont(ofSize: 18, weight: .semibold)
         l.textColor = .label
         l.numberOfLines = 1
         l.lineBreakMode = .byTruncatingTail
-        l.text = "Отзывы и рецензии"
+        l.text = "Отзывы"
         return l
     }()
 
@@ -40,6 +49,25 @@ final class ReviewSectionView: UIView {
         return b
     }()
 
+    private let leaveReviewButton: UIButton = {
+        let b = UIButton(type: .system)
+        b.backgroundColor = UIColor.systemBlue.withAlphaComponent(0.1)
+        b.layer.cornerRadius = 16
+        b.layer.masksToBounds = true
+        
+        let icon = UIImage(systemName: "plus")?.withConfiguration(
+            UIImage.SymbolConfiguration(pointSize: 14, weight: .semibold)
+        )
+        b.setImage(icon, for: .normal)
+        b.setTitle(" Оставить отзыв", for: .normal)
+        b.setTitleColor(.systemBlue, for: .normal)
+        b.tintColor = .systemBlue
+        b.titleLabel?.font = .systemFont(ofSize: 15, weight: .semibold)
+        b.contentEdgeInsets = UIEdgeInsets(top: 12, left: 20, bottom: 12, right: 20)
+        
+        return b
+    }()
+
     private let headerStack = UIStackView()
     private let buttonStack = UIStackView()
     private let collectionView: UICollectionView
@@ -47,6 +75,9 @@ final class ReviewSectionView: UIView {
     var items: [ReviewItem] = [] {
         didSet { collectionView.reloadData() }
     }
+
+    private var bottomConstraintWithButton: Constraint?
+    private var bottomConstraintWithoutButton: Constraint?
 
     override init(frame: CGRect) {
         let layout = UICollectionViewFlowLayout()
@@ -64,6 +95,9 @@ final class ReviewSectionView: UIView {
         setupStacks()
         setupCollectionView()
         setupLayout()
+        
+        leaveReviewButton.addTarget(self, action: #selector(didTapLeaveReview), for: .touchUpInside)
+        updateLeaveReviewVisibility()
     }
 
     required init?(coder: NSCoder) {
@@ -71,7 +105,6 @@ final class ReviewSectionView: UIView {
     }
 
     private func setupStacks() {
-        // BUTTON STACK
         buttonStack.axis = .horizontal
         buttonStack.alignment = .center
         buttonStack.spacing = 4
@@ -81,7 +114,6 @@ final class ReviewSectionView: UIView {
         prevButton.addTarget(self, action: #selector(didTapPrev), for: .touchUpInside)
         nextButton.addTarget(self, action: #selector(didTapNext), for: .touchUpInside)
 
-        // HEADER STACK
         headerStack.axis = .horizontal
         headerStack.alignment = .center
         headerStack.spacing = 8
@@ -93,6 +125,7 @@ final class ReviewSectionView: UIView {
         buttonStack.setContentHuggingPriority(.required, for: .horizontal)
 
         addSubview(headerStack)
+        addSubview(leaveReviewButton)
     }
 
     private func setupCollectionView() {
@@ -111,9 +144,22 @@ final class ReviewSectionView: UIView {
 
         collectionView.snp.makeConstraints { make in
             make.top.equalTo(headerStack.snp.bottom).offset(8)
-            make.leading.trailing.bottom.equalToSuperview()
-            make.height.equalTo(190)
+            make.leading.trailing.equalToSuperview()
+            make.height.equalTo(210)
         }
+
+        leaveReviewButton.snp.makeConstraints { make in
+            make.top.equalTo(collectionView.snp.bottom).offset(16)
+            make.centerX.equalToSuperview()
+        }
+
+        bottomConstraintWithButton = leaveReviewButton.snp.prepareConstraints { make in
+            make.bottom.equalToSuperview().inset(16)
+        }.first
+
+        bottomConstraintWithoutButton = collectionView.snp.prepareConstraints { make in
+            make.bottom.equalToSuperview().inset(16)
+        }.first
 
         prevButton.snp.makeConstraints { make in
             make.width.height.equalTo(16)
@@ -121,6 +167,33 @@ final class ReviewSectionView: UIView {
         nextButton.snp.makeConstraints { make in
             make.width.height.equalTo(16)
         }
+    }
+
+    private func updateLeaveReviewVisibility() {
+        leaveReviewButton.isHidden = !showLeaveReviewButton
+
+        if showLeaveReviewButton {
+            bottomConstraintWithoutButton?.deactivate()
+            bottomConstraintWithButton?.activate()
+        } else {
+            bottomConstraintWithButton?.deactivate()
+            bottomConstraintWithoutButton?.activate()
+        }
+        setNeedsLayout()
+        layoutIfNeeded()
+    }
+
+    @objc private func didTapLeaveReview() {
+        let vc = LeaveReviewViewController()
+        vc.bookTitle = bookTitle.isEmpty ? "Книга" : bookTitle
+        vc.modalPresentationStyle = .overFullScreen
+        vc.modalTransitionStyle = .crossDissolve
+        
+        vc.onReviewSubmitted = { [weak self] rating, reviewText in
+            print("Rating: \(rating), Review: \(reviewText)")
+        }
+        
+        presentingViewController?.present(vc, animated: false)
     }
 
     @objc private func didTapPrev() {
@@ -151,50 +224,6 @@ final class ReviewSectionView: UIView {
         let centerPoint = convert(collectionView.center, to: collectionView)
         return collectionView.indexPathForItem(at: centerPoint)
     }
-    
-    private func showReviewMenu(for indexPath: IndexPath) {
-        let review = items[indexPath.item]
-        
-        let actionSheet = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
-        
-        let hideAction = UIAlertAction(title: "Скрыть отзывы пользователя", style: .default) { [weak self] _ in
-            self?.hideUserReviews(userName: review.userName)
-        }
-        
-        let reportAction = UIAlertAction(title: "Пожаловаться", style: .default) { [weak self] _ in
-            self?.reportReview(review)
-        }
-        
-        let cancelAction = UIAlertAction(title: "Отмена", style: .cancel)
-        
-        actionSheet.addAction(hideAction)
-        actionSheet.addAction(reportAction)
-        actionSheet.addAction(cancelAction)
-        
-        if let vc = presentingViewController {
-            vc.present(actionSheet, animated: true)
-        }
-    }
-    
-    private func hideUserReviews(userName: String) {
-        items.removeAll { $0.userName == userName }
-        print("Hidden all reviews from: \(userName)")
-    }
-    
-    private func reportReview(_ review: ReviewItem) {
-        print("Reported review from: \(review.userName)")
-        
-        let alert = UIAlertController(
-            title: "Жалоба отправлена",
-            message: "Спасибо за обратную связь. Мы рассмотрим жалобу в ближайшее время.",
-            preferredStyle: .alert
-        )
-        alert.addAction(UIAlertAction(title: "OK", style: .default))
-        
-        if let vc = presentingViewController {
-            vc.present(alert, animated: true)
-        }
-    }
 }
 
 extension ReviewSectionView: UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
@@ -202,13 +231,14 @@ extension ReviewSectionView: UICollectionViewDataSource, UICollectionViewDelegat
         return items.count
     }
 
-    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+    func collectionView(_ collectionView: UICollectionView,
+                        cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ReviewCardCell.id, for: indexPath) as? ReviewCardCell else {
             return UICollectionViewCell()
         }
         cell.configure(with: items[indexPath.item])
-        cell.onMenuTapped = { [weak self] in
-            self?.showReviewMenu(for: indexPath)
+        cell.onMoreTapped = { [weak self] in
+            self?.onTapShowAllReviews?()
         }
         return cell
     }
@@ -245,3 +275,4 @@ extension ReviewSectionView: UICollectionViewDataSource, UICollectionViewDelegat
         targetContentOffset.pointee.x = targetPage * pageWidth
     }
 }
+

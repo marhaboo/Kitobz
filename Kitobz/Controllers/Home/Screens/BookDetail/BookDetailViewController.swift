@@ -2,7 +2,7 @@
 //  BookDetailViewController.swift
 //  Kitobz
 //
-//  Created by Boymurodova Marhabo on 05/12/25.
+//  Created by Boyмuroдова Marhabo on 05/12/25.
 //
 
 import UIKit
@@ -40,7 +40,7 @@ final class BookDetailViewController: UIViewController {
     private let readMoreButton = UIButton(type: .system)
     
     private let bookRatingView = BookRatingView()
-
+    private let reviewsSectionView = ReviewSectionView()
 
     private var isExpanded = false
 
@@ -101,8 +101,6 @@ final class BookDetailViewController: UIViewController {
         let favoriteButtonGlass = createGlassButton(for: favoriteButton)
 
         contentView.addSubviews([bookImageView, bookTitleLabel, authorLabel])
-        
-        // Add buttons to main view instead of contentView so they don't scroll
         view.addSubviews([backButtonGlass, favoriteButtonGlass])
 
         backButtonGlass.snp.makeConstraints {
@@ -206,6 +204,7 @@ final class BookDetailViewController: UIViewController {
             conf.contentInsets = .zero
             conf.background.backgroundColor = .clear
             readMoreButton.configuration = conf
+            // IMPORTANT: description "Далее" toggles description, not reviews
             readMoreButton.addTarget(self, action: #selector(toggleReadMore), for: .touchUpInside)
         } else {
             readMoreButton.setTitle("Далее", for: .normal)
@@ -219,7 +218,7 @@ final class BookDetailViewController: UIViewController {
         bottomCardView.addSubview(descriptionLabel)
         bottomCardView.addSubview(readMoreButton)
         bottomCardView.addSubview(bookRatingView)
-
+        bottomCardView.addSubview(reviewsSectionView)
 
         descriptionLabel.snp.makeConstraints {
             $0.top.equalTo(sectionTitleLabel.snp.bottom).offset(8)
@@ -227,22 +226,31 @@ final class BookDetailViewController: UIViewController {
             $0.leading.equalToSuperview().offset(16)
         }
         
-
         readMoreButton.snp.makeConstraints {
             $0.top.equalTo(descriptionLabel.snp.bottom).offset(6)
             $0.leading.equalTo(descriptionLabel)
         }
-
-
         
         bookRatingView.snp.makeConstraints {
             $0.top.equalTo(readMoreButton.snp.bottom).offset(20)
             $0.leading.equalToSuperview().offset(16)
             $0.trailing.equalToSuperview().inset(16)
+        }
+
+        reviewsSectionView.snp.makeConstraints {
+            $0.top.equalTo(bookRatingView.snp.bottom).offset(16)
+            $0.leading.trailing.equalToSuperview()
             $0.bottom.equalToSuperview().inset(24)
         }
 
+        reviewsSectionView.presentingViewController = self
+        reviewsSectionView.showLeaveReviewButton = true
+        reviewsSectionView.bookTitle = book.title
 
+        // Tapping "Далее" inside a review card -> open "Все отзывы"
+        reviewsSectionView.onTapShowAllReviews = { [weak self] in
+            self?.openAllReviews()
+        }
     }
 
     private func createGlassButton(for button: UIButton) -> GlassButtonContainer {
@@ -268,7 +276,6 @@ final class BookDetailViewController: UIViewController {
             count: reviewsToShow.count
         )
 
-
         reviewsView.configure(value: "\(reviewsToShow.count)", title: "отзывов", valueFont: 18, titleFont: 11)
         pagesView.configure(value: "\(book.pageCount)", title: "стр.", valueFont: 18, titleFont: 11)
         ageView.configure(value: "\(book.ageRating)", title: "возраст", valueFont: 18, titleFont: 11)
@@ -290,8 +297,15 @@ final class BookDetailViewController: UIViewController {
         updateFavoriteButton(animated: false)
         view.layoutIfNeeded()
         updateReadMoreVisibility()
-    }
 
+        let filteredReviews: [ReviewItem]
+        if let injected = injectedReviews {
+            filteredReviews = injected
+        } else {
+            filteredReviews = book.reviews
+        }
+        reviewsSectionView.items = filteredReviews
+    }
 
     @objc private func didTapBack() {
         navigationController?.popViewController(animated: true)
@@ -303,6 +317,14 @@ final class BookDetailViewController: UIViewController {
         FavoritesManager.shared.setFavorite(bookID: book.id, isFavorite: book.isFavorite)
     }
 
+    // Open all reviews from the review section only
+    @objc private func openAllReviews() {
+        let all = reviewsSectionView.items
+        let vc = AllReviewsViewController(bookTitle: book.title, reviews: all)
+        navigationController?.pushViewController(vc, animated: true)
+    }
+
+    // Keep description "Далее" as expand/collapse
     @objc private func toggleReadMore() {
         isExpanded.toggle()
         

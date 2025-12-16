@@ -1,10 +1,11 @@
-import Foundation
+//
+//  Quote.swift
+//  Kitobz
+//
+//  Created by Boymurodova Marhabo on 04/12/25.
+//
 
-enum ReviewMood {
-    case happy
-    case neutral
-    case sad
-}
+import Foundation
 
 struct ReviewItem {
     let bookId: String
@@ -14,5 +15,14 @@ struct ReviewItem {
     let bookTitle: String
     let rating: Int
     let reviewText: String
-    let mood: ReviewMood
+    
+    init(bookId: String, userName: String, date: String, bookCoverImageName: String, bookTitle: String, rating: Int, reviewText: String) {
+        self.bookId = bookId
+        self.userName = userName
+        self.date = date
+        self.bookCoverImageName = bookCoverImageName
+        self.bookTitle = bookTitle
+        self.rating = rating
+        self.reviewText = reviewText
+    }
 }
