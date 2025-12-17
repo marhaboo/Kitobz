@@ -204,7 +204,6 @@ final class BookDetailViewController: UIViewController {
             conf.contentInsets = .zero
             conf.background.backgroundColor = .clear
             readMoreButton.configuration = conf
-            // IMPORTANT: description "Далее" toggles description, not reviews
             readMoreButton.addTarget(self, action: #selector(toggleReadMore), for: .touchUpInside)
         } else {
             readMoreButton.setTitle("Далее", for: .normal)
@@ -324,7 +323,6 @@ final class BookDetailViewController: UIViewController {
         navigationController?.pushViewController(vc, animated: true)
     }
 
-    // Keep description "Далее" as expand/collapse
     @objc private func toggleReadMore() {
         isExpanded.toggle()
         

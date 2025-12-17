@@ -45,6 +45,14 @@ final class HomeViewController: UIViewController {
         setupBookTapHandlers()
         setupStoriesTapHandler()
         setupShowAllHandlers()
+        setupReviewsSection()
+    }
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        // Ensure icon and appearance are in sync if changed elsewhere (e.g., Settings)
+        updateThemeToggleIcon()
+        applyAppearanceForCurrentStyle()
     }
 
     private func configureNavigationBar() {
@@ -109,6 +117,7 @@ final class HomeViewController: UIViewController {
         target?.setImage(image, for: .normal)
         target?.tintColor = UIColor.label
     }
+    
 
     override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
         super.traitCollectionDidChange(previousTraitCollection)
@@ -159,16 +168,12 @@ final class HomeViewController: UIViewController {
     }
 
     private func loadData() {
-        // 1) Load base books (without reviews)
         let baseBooks = BooksProvider.baseBooks()
 
-        // 2) Load all reviews
         reviews = ReviewsProvider.loadReviews(for: baseBooks)
 
-        // 3) Group reviews by bookId
         let reviewsByBookId: [String: [ReviewItem]] = Dictionary(grouping: reviews, by: { $0.bookId })
 
-        // 4) Merge reviews into books and recompute rating (average of ReviewItem.rating)
         let updatedBooks: [Book] = baseBooks.map { book in
             let bookReviews = reviewsByBookId[book.id] ?? []
             let newRating: Double
@@ -177,7 +182,6 @@ final class HomeViewController: UIViewController {
                 let avg = Double(sum) / Double(bookReviews.count)
                 newRating = avg
             } else {
-                // Fallback to seeded rating if no reviews
                 newRating = book.rating
             }
 
@@ -215,18 +219,15 @@ final class HomeViewController: UIViewController {
             discountBooks = allBooks
         }
 
-        // 6) Load other data
         banners = BannersProvider.loadBanners()
         quotes = QuotesProvider.loadQuotes()
         roundCardItems = RoundCardsProvider.loadItems()
         socialMediaItems = SocialMediaProvider.loadItems()
 
-        // Stories
         stories = StoriesProvider.loadStories()
         roundCardSection.items = stories.map { RoundCardItem(title: $0.title, imageName: $0.coverImageName) }
         roundCardSection.seenFlags = stories.map { $0.isSeen }
 
-        // 7) Bind data to sections
         bannerSection.setBanners(banners)
         bestBooksSection.setBooks(bestBooks)
         recommendedSection.setBooks(recommendedBooks)
@@ -254,7 +255,6 @@ final class HomeViewController: UIViewController {
         }
     }
 
-    // NEW: handle "Все" taps
     private func setupShowAllHandlers() {
         bestBooksSection.onShowAll = { [weak self] books, title in
             self?.showAllBooks(books, title: title)
@@ -264,6 +264,20 @@ final class HomeViewController: UIViewController {
         }
         discountSection.onShowAll = { [weak self] books, title in
             self?.showAllBooks(books, title: title)
+        }
+    }
+
+    private func setupReviewsSection() {
+        reviewSection.presentingViewController = self
+        
+        reviewSection.onTapShowAllReviews = { [weak self] in
+            guard let self = self else { return }
+            
+            let allReviewsVC = AllReviewsViewController(
+                bookTitle: "Все отзывы",
+                reviews: self.reviews
+            )
+            self.navigationController?.pushViewController(allReviewsVC, animated: true)
         }
     }
 
@@ -277,36 +291,30 @@ final class HomeViewController: UIViewController {
         let story = stories[index]
         let viewer = StoriesViewerViewController(story: story)
 
-        // mark seen on finish of this card
         viewer.onFinished = { [weak self] in
             guard let self = self else { return }
             self.stories[index].isSeen = true
             self.roundCardSection.seenFlags[index] = true
             self.roundCardSection.reloadItem(at: index)
 
-            // If this viewer was the only one in the stack, dismiss the whole stories flow
             if let nav = self.storiesNavController, nav.viewControllers.count <= 1 {
                 nav.dismiss(animated: true)
             }
         }
 
-        // request to show next card when this story’s images are done
         viewer.onRequestNextStory = { [weak self] in
             guard let self = self else { return }
             let nextIndex = index + 1
             if nextIndex < self.stories.count {
                 self.pushNextStory(at: nextIndex)
             } else {
-                // No more stories, dismiss the flow
                 self.storiesNavController?.dismiss(animated: true)
             }
         }
 
         if let nav = storiesNavController {
-            // Already inside stories flow: push for horizontal animation
             nav.pushViewController(viewer, animated: true)
         } else {
-            // Start stories flow: present a hidden-nav UINavigationController
             let nav = UINavigationController(rootViewController: viewer)
             nav.isNavigationBarHidden = true
             nav.modalPresentationStyle = .fullScreen
@@ -318,7 +326,6 @@ final class HomeViewController: UIViewController {
     private func pushNextStory(at index: Int) {
         guard index >= 0, index < stories.count else { return }
         guard let nav = storiesNavController else {
-            // If nav is gone (unlikely), start fresh
             presentStory(at: index)
             return
         }
@@ -331,7 +338,6 @@ final class HomeViewController: UIViewController {
             self.roundCardSection.seenFlags[index] = true
             self.roundCardSection.reloadItem(at: index)
 
-            // If this is the last controller in stack, dismiss flow
             if nav.viewControllers.count <= 1 {
                 nav.dismiss(animated: true)
             }
@@ -356,10 +362,25 @@ final class HomeViewController: UIViewController {
         navigationController?.pushViewController(vc, animated: true)
     }
 
+    // Toggle theme like in Settings: persist and apply at window level
     @objc private func didTapThemeToggle() {
-        let isDark = traitCollection.userInterfaceStyle == .dark
-        overrideUserInterfaceStyle = isDark ? .light : .dark
-        navigationController?.overrideUserInterfaceStyle = overrideUserInterfaceStyle
+        let current = UserDefaults.standard.bool(forKey: "darkMode")
+        let newValue = !current
+        UserDefaults.standard.set(newValue, forKey: "darkMode")
+
+        if let window = view.window ?? UIApplication.shared.connectedScenes
+            .compactMap({ $0 as? UIWindowScene })
+            .first?.windows.first {
+            UIView.transition(with: window, duration: 0.3, options: [.transitionCrossDissolve, .allowAnimatedContent]) {
+                window.overrideUserInterfaceStyle = newValue ? .dark : .light
+            }
+        } else {
+            // Fallback: apply to nav and self if window not yet available
+            overrideUserInterfaceStyle = newValue ? .dark : .light
+            navigationController?.overrideUserInterfaceStyle = overrideUserInterfaceStyle
+        }
+
+        updateThemeToggleIcon()
         applyAppearanceForCurrentStyle()
     }
 }

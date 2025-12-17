@@ -20,7 +20,7 @@ final class BookDetailView: UIView {
         iv.contentMode = .scaleAspectFill
         iv.clipsToBounds = true
         iv.layer.cornerRadius = 12
-        iv.backgroundColor = .secondarySystemBackground
+        iv.backgroundColor = .clear
         return iv
     }()
 

@@ -114,14 +114,14 @@ final class BookListCell: UICollectionViewCell {
 
         let priceStack = UIStackView()
         priceStack.axis = .horizontal
-        priceStack.spacing = 4 // reduced spacing
-        priceStack.alignment = .firstBaseline // align nicely
+        priceStack.spacing = 8
+        priceStack.alignment = .firstBaseline
         priceStack.addArrangedSubview(priceLabel)
         priceStack.addArrangedSubview(oldPriceLabel)
+        priceStack.addArrangedSubview(UIView())
 
-        // Hugging priority to keep old price tight
         oldPriceLabel.setContentHuggingPriority(.required, for: .horizontal)
-        priceLabel.setContentHuggingPriority(.defaultHigh, for: .horizontal)
+        priceLabel.setContentHuggingPriority(.required, for: .horizontal)
 
         rightStack.addArrangedSubview(titleLabel)
         rightStack.addArrangedSubview(authorLabel)
@@ -190,8 +190,10 @@ final class BookListCell: UICollectionViewCell {
                 ]
             )
             oldPriceLabel.attributedText = attribute
+            oldPriceLabel.isHidden = false
         } else {
             oldPriceLabel.attributedText = nil
+            oldPriceLabel.isHidden = true
         }
 
         let isFav = FavoritesManager.shared.isFavorite(bookID: book.id) || book.isFavorite

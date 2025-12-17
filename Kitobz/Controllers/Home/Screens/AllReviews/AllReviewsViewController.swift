@@ -33,25 +33,17 @@ final class AllReviewsViewController: UIViewController {
     }
 
     private func setupNavTitle() {
-        // Показываем название книги в подзаголовке
         let titleLabel = UILabel()
-        titleLabel.text = "Все отзывы"
+        titleLabel.text = "Отзывы"
         titleLabel.font = .systemFont(ofSize: 17, weight: .semibold)
         titleLabel.textAlignment = .center
+        titleLabel.textColor = .label
+        titleLabel.backgroundColor = .clear
+        titleLabel.sizeToFit()
 
-        let subtitleLabel = UILabel()
-        subtitleLabel.text = bookTitle
-        subtitleLabel.font = .systemFont(ofSize: 12, weight: .regular)
-        subtitleLabel.textColor = .secondaryLabel
-        subtitleLabel.textAlignment = .center
-
-        let stack = UIStackView(arrangedSubviews: [titleLabel, subtitleLabel])
-        stack.axis = .vertical
-        stack.alignment = .center
-        stack.spacing = 0
-
-        navigationItem.titleView = stack
+        navigationItem.titleView = titleLabel
     }
+
 
     private func setupTableView() {
         view.addSubview(tableView)
@@ -128,7 +120,7 @@ private final class FullReviewCell: UITableViewCell {
 
         contentView.addSubview(cardView)
         cardView.snp.makeConstraints { make in
-            make.edges.equalToSuperview().inset(12)
+            make.edges.equalToSuperview().inset(6)
         }
 
         let nameDateStack = UIStackView(arrangedSubviews: [nameLabel, dateLabel])

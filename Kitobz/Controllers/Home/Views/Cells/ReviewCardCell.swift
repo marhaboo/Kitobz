@@ -11,14 +11,10 @@ import SnapKit
 final class ReviewCardCell: UICollectionViewCell {
     static let id = "ReviewCardCell"
     
-    // MARK: - Callbacks
     var onMoreTapped: (() -> Void)?
 
-    // MARK: - State
     private var fullText: String = ""
 
-    // MARK: - Views
-    
     private let cardView: UIView = {
         let v = UIView()
         v.layer.cornerRadius = 24
@@ -27,7 +23,6 @@ final class ReviewCardCell: UICollectionViewCell {
         return v
     }()
 
-    // Header
     private let avatarView = InitialsAvatarView()
     
     private let nameLabel: UILabel = {
@@ -54,22 +49,12 @@ final class ReviewCardCell: UICollectionViewCell {
         return s
     }()
     
-    // Body
-    private let reviewPrimaryLabel: UILabel = {
+    private let reviewLabel: UILabel = {
         let l = UILabel()
         l.font = .systemFont(ofSize: 15, weight: .regular)
         l.textColor = .label
         l.numberOfLines = 3
-        l.lineBreakMode = .byTruncatingTail
-        return l
-    }()
-    
-    private let reviewSecondaryLabel: UILabel = {
-        let l = UILabel()
-        l.font = .systemFont(ofSize: 15, weight: .regular)
-        l.textColor = .secondaryLabel
-        l.numberOfLines = 1
-        l.lineBreakMode = .byTruncatingTail
+        l.lineBreakMode = .byWordWrapping
         return l
     }()
     
@@ -79,17 +64,16 @@ final class ReviewCardCell: UICollectionViewCell {
         b.titleLabel?.font = .systemFont(ofSize: 15, weight: .semibold)
         b.setTitleColor(UIColor(named: "AccentColor") ?? .systemBlue, for: .normal)
         b.contentEdgeInsets = .zero
+        b.titleEdgeInsets = .zero
         b.contentHorizontalAlignment = .leading
         return b
     }()
 
-    // MARK: - Init
     override init(frame: CGRect) {
         super.init(frame: frame)
         
         contentView.addSubview(cardView)
         
-        // Header
         let nameDateStack = UIStackView(arrangedSubviews: [nameLabel, dateLabel])
         nameDateStack.axis = .vertical
         nameDateStack.spacing = 2
@@ -104,10 +88,10 @@ final class ReviewCardCell: UICollectionViewCell {
         header.alignment = .center
         header.spacing = 8
         
-        // Body
-        let body = UIStackView(arrangedSubviews: [reviewPrimaryLabel, reviewSecondaryLabel, moreButton])
+        let body = UIStackView(arrangedSubviews: [reviewLabel, moreButton])
         body.axis = .vertical
-        body.spacing = 6
+        body.spacing = 0
+        body.alignment = .leading
         
         let container = UIStackView(arrangedSubviews: [header, body])
         container.axis = .vertical
@@ -115,7 +99,6 @@ final class ReviewCardCell: UICollectionViewCell {
         
         cardView.addSubview(container)
         
-        // Constraints
         cardView.snp.makeConstraints { make in
             make.edges.equalToSuperview().inset(8)
         }
@@ -126,7 +109,6 @@ final class ReviewCardCell: UICollectionViewCell {
             make.edges.equalToSuperview().inset(16)
         }
         
-        // Stars
         for _ in 0..<5 {
             let iv = UIImageView(image: UIImage(systemName: "star.fill"))
             iv.tintColor = .systemYellow
@@ -138,20 +120,22 @@ final class ReviewCardCell: UICollectionViewCell {
         }
         
         moreButton.addTarget(self, action: #selector(didTapMore), for: .touchUpInside)
+        
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(didTapCard))
+        cardView.addGestureRecognizer(tapGesture)
     }
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     
-    // MARK: - Configure
     override func prepareForReuse() {
         super.prepareForReuse()
         nameLabel.text = nil
         dateLabel.text = nil
-        reviewPrimaryLabel.text = nil
-        reviewSecondaryLabel.text = nil
+        reviewLabel.text = nil
         fullText = ""
+        moreButton.isHidden = false
         updateStars(rating: 0)
     }
     
@@ -161,11 +145,39 @@ final class ReviewCardCell: UICollectionViewCell {
         avatarView.setInitials(from: item.userName)
         
         fullText = item.reviewText
-        let (first, second) = split(text: item.reviewText)
-        reviewPrimaryLabel.text = first
-        reviewSecondaryLabel.text = second
+        reviewLabel.text = item.reviewText
         
         updateStars(rating: item.rating)
+        
+        DispatchQueue.main.async { [weak self] in
+            self?.updateMoreButtonVisibility()
+        }
+    }
+    
+    private func updateMoreButtonVisibility() {
+        let shouldShowMore = textExceedsLines(
+            text: fullText,
+            label: reviewLabel,
+            maxLines: 3
+        )
+        moreButton.isHidden = !shouldShowMore
+    }
+    
+    private func textExceedsLines(text: String, label: UILabel, maxLines: Int) -> Bool {
+        let font = label.font ?? UIFont.systemFont(ofSize: 15)
+        let maxHeight = font.lineHeight * CGFloat(maxLines)
+        
+        let width = label.bounds.width
+        guard width > 0 else { return false }
+        
+        let bounding = (text as NSString).boundingRect(
+            with: CGSize(width: width, height: .greatestFiniteMagnitude),
+            options: [.usesLineFragmentOrigin, .usesFontLeading],
+            attributes: [.font: font],
+            context: nil
+        )
+        
+        return bounding.height > maxHeight + 1
     }
     
     private func updateStars(rating: Int) {
@@ -177,27 +189,15 @@ final class ReviewCardCell: UICollectionViewCell {
         }
     }
     
-    private func split(text: String) -> (String, String) {
-        if let range = text.firstIndex(of: "。") ?? text.firstIndex(of: ".") {
-            let first = String(text[..<text.index(after: range)]).trimmingCharacters(in: .whitespacesAndNewlines)
-            let second = String(text[text.index(after: range)...]).trimmingCharacters(in: .whitespacesAndNewlines)
-            return (first, second)
-        }
-        let cut = min(max(0, text.count * 7 / 10), text.count)
-        let idx = text.index(text.startIndex, offsetBy: cut)
-        let first = String(text[..<idx]).trimmingCharacters(in: .whitespacesAndNewlines)
-        let second = String(text[idx...]).trimmingCharacters(in: .whitespacesAndNewlines)
-        return (first, second)
+    @objc private func didTapMore() {
+        onMoreTapped?()
     }
     
-    // MARK: - Actions
-    @objc private func didTapMore() {
-        // Вместо разворота — вызываем колбэк для перехода на экран "Все отзывы"
+    @objc private func didTapCard() {
         onMoreTapped?()
     }
 }
 
-// MARK: - Helpers
 private final class InitialsAvatarView: UIView {
     private let label = UILabel()
     
@@ -232,4 +232,3 @@ private final class InitialsAvatarView: UIView {
         return UIColor(hue: hue, saturation: 0.5, brightness: 0.75, alpha: 1)
     }
 }
-

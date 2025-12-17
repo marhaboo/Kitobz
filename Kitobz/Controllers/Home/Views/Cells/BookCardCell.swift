@@ -82,7 +82,7 @@ final class BookCardCell: UICollectionViewCell {
     // MARK: - Setup UI
     private func setupUI() {
         contentView.layer.cornerRadius = 16
-        contentView.backgroundColor = .systemBackground
+        contentView.backgroundColor = .clear
         contentView.layer.masksToBounds = false // allow shadow
 
         contentView.addSubview(coverImageView)

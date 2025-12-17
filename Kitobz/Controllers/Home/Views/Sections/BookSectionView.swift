@@ -10,7 +10,6 @@ import SnapKit
 final class BookSectionView: UIView {
     
     var onBookSelected: ((Book) -> Void)?
-    // New: callback for "Все"
     var onShowAll: (([Book], String) -> Void)?
     
     private let titleLabel: UILabel = {
@@ -34,7 +33,7 @@ final class BookSectionView: UIView {
         l.textColor = UIColor(named: "AccentColor2")
         l.text = "Все"
         l.textAlignment = .right
-        l.isUserInteractionEnabled = true // make tappable
+        l.isUserInteractionEnabled = true
         return l
     }()
 

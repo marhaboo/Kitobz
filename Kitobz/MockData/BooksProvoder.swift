@@ -147,4 +147,44 @@ struct BooksProvider {
 
         return books
     }
+
+    // New: returns books with merged reviews, recalculated ratings, and favorites applied
+    static func updatedBooks() -> [Book] {
+        let base = baseBooks()
+        let reviews = ReviewsProvider.loadReviews(for: base)
+        let reviewsByBookId = Dictionary(grouping: reviews, by: { $0.bookId })
+
+        let merged: [Book] = base.map { book in
+            let bookReviews = reviewsByBookId[book.id] ?? []
+            let newRating: Double
+            if !bookReviews.isEmpty {
+                let sum = bookReviews.reduce(0) { $0 + $1.rating }
+                newRating = Double(sum) / Double(bookReviews.count)
+            } else {
+                newRating = book.rating
+            }
+            return Book(
+                coverImageName: book.coverImageName,
+                title: book.title,
+                author: book.author,
+                price: book.price,
+                oldPrice: book.oldPrice,
+                discountText: book.discountText,
+                id: book.id,
+                bookDescription: book.bookDescription,
+                rating: newRating,
+                ageRating: book.ageRating,
+                language: book.language,
+                coverType: book.coverType,
+                pageCount: book.pageCount,
+                publishYear: book.publishYear,
+                reviews: bookReviews,
+                quotes: book.quotes,
+                otherBooksByAuthor: book.otherBooksByAuthor,
+                isFavorite: FavoritesManager.shared.isFavorite(bookID: book.id) || book.isFavorite
+            )
+        }
+        return merged
+    }
 }
+
