@@ -51,7 +51,7 @@ final class ReviewCardCell: UICollectionViewCell {
     
     private let reviewLabel: UILabel = {
         let l = UILabel()
-        l.font = .systemFont(ofSize: 15, weight: .regular)
+        l.font = .systemFont(ofSize: 14, weight: .regular)
         l.textColor = .label
         l.numberOfLines = 3
         l.lineBreakMode = .byWordWrapping
@@ -61,7 +61,7 @@ final class ReviewCardCell: UICollectionViewCell {
     private let moreButton: UIButton = {
         let b = UIButton(type: .system)
         b.setTitle("Далее", for: .normal)
-        b.titleLabel?.font = .systemFont(ofSize: 15, weight: .semibold)
+        b.titleLabel?.font = .systemFont(ofSize: 14, weight: .semibold)
         b.setTitleColor(UIColor(named: "AccentColor") ?? .systemBlue, for: .normal)
         b.contentEdgeInsets = .zero
         b.titleEdgeInsets = .zero
@@ -96,17 +96,19 @@ final class ReviewCardCell: UICollectionViewCell {
         let container = UIStackView(arrangedSubviews: [header, body])
         container.axis = .vertical
         container.spacing = 12
+        container.alignment = .fill
         
         cardView.addSubview(container)
         
         cardView.snp.makeConstraints { make in
-            make.edges.equalToSuperview().inset(8)
+            make.edges.equalToSuperview().inset(UIEdgeInsets(top: 8, left: 0, bottom: 8, right: 8))
         }
         avatarView.snp.makeConstraints { make in
-            make.width.height.equalTo(40)
+            make.width.height.equalTo(36)
         }
         container.snp.makeConstraints { make in
-            make.edges.equalToSuperview().inset(16)
+            make.top.leading.trailing.equalToSuperview().inset(18)
+            make.bottom.lessThanOrEqualToSuperview().inset(12)
         }
         
         for _ in 0..<5 {
@@ -114,7 +116,7 @@ final class ReviewCardCell: UICollectionViewCell {
             iv.tintColor = .systemYellow
             iv.contentMode = .scaleAspectFit
             iv.snp.makeConstraints { make in
-                make.width.height.equalTo(16)
+                make.width.height.equalTo(14)
             }
             starsStack.addArrangedSubview(iv)
         }
@@ -164,7 +166,7 @@ final class ReviewCardCell: UICollectionViewCell {
     }
     
     private func textExceedsLines(text: String, label: UILabel, maxLines: Int) -> Bool {
-        let font = label.font ?? UIFont.systemFont(ofSize: 15)
+        let font = label.font ?? UIFont.systemFont(ofSize: 14)
         let maxHeight = font.lineHeight * CGFloat(maxLines)
         
         let width = label.bounds.width
@@ -204,10 +206,10 @@ private final class InitialsAvatarView: UIView {
     override init(frame: CGRect) {
         super.init(frame: frame)
         backgroundColor = UIColor.systemGray4
-        layer.cornerRadius = 20
+        layer.cornerRadius = 18
         layer.masksToBounds = true
         
-        label.font = .systemFont(ofSize: 16, weight: .semibold)
+        label.font = .systemFont(ofSize: 14, weight: .semibold)
         label.textAlignment = .center
         label.textColor = .white
         

@@ -2,7 +2,7 @@
 //  LeaveReviewViewController.swift
 //  Kitobz
 //
-//  Created by Boymurodova Marhabo on 16/12/25.
+//  Created by Boyмuroдова Marhabo on 16/12/25.
 //
 
 import UIKit
@@ -100,18 +100,6 @@ final class LeaveReviewViewController: UIViewController {
         return l
     }()
     
-    // Keyboard toolbar with Готово button
-    private lazy var keyboardToolbar: UIToolbar = {
-        let toolbar = UIToolbar()
-        toolbar.sizeToFit()
-        
-        let flexSpace = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
-        let doneButton = UIBarButtonItem(title: "Готово", style: .done, target: self, action: #selector(didTapKeyboardDone))
-        
-        toolbar.items = [flexSpace, doneButton]
-        return toolbar
-    }()
-    
     private let submitButton: UIButton = {
         let b = UIButton(type: .system)
         b.setTitle("Отправить отзыв", for: .normal)
@@ -129,7 +117,7 @@ final class LeaveReviewViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        view.backgroundColor = UIColor.black.withAlphaComponent(0.4)
+        view.backgroundColor = UIColor.black.withAlphaComponent(0.5)
         
         setupViews()
         setupStars()
@@ -139,15 +127,6 @@ final class LeaveReviewViewController: UIViewController {
         titleLabel.text = bookTitle
         
         textView.delegate = self
-        textView.inputAccessoryView = keyboardToolbar
-        
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
-        tapGesture.cancelsTouchesInView = false
-        view.addGestureRecognizer(tapGesture)
-        
-        // Listen for keyboard notifications
-        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name: UIResponder.keyboardWillShowNotification, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide), name: UIResponder.keyboardWillHideNotification, object: nil)
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -190,7 +169,7 @@ final class LeaveReviewViewController: UIViewController {
     private func setupLayout() {
         containerView.snp.makeConstraints { make in
             make.leading.trailing.bottom.equalToSuperview()
-            make.height.equalToSuperview().multipliedBy(0.85)
+            make.height.equalToSuperview().multipliedBy(0.93)
         }
         
         closeButton.snp.makeConstraints { make in
@@ -277,43 +256,13 @@ final class LeaveReviewViewController: UIViewController {
         }
     }
     
-    @objc private func dismissKeyboard() {
-        view.endEditing(true)
-    }
-    
-    @objc private func didTapKeyboardDone() {
-        view.endEditing(true)
-    }
-    
-    @objc private func keyboardWillShow(notification: NSNotification) {
-        guard let keyboardFrame = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect else { return }
-        
-        let keyboardHeight = keyboardFrame.height
-        
-        UIView.animate(withDuration: 0.3) {
-            self.submitButton.snp.updateConstraints { make in
-                make.bottom.equalTo(self.view.safeAreaLayoutGuide).inset(keyboardHeight + 8)
-            }
-            self.view.layoutIfNeeded()
-        }
-    }
-    
-    @objc private func keyboardWillHide(notification: NSNotification) {
-        UIView.animate(withDuration: 0.3) {
-            self.submitButton.snp.updateConstraints { make in
-                make.bottom.equalTo(self.view.safeAreaLayoutGuide).inset(16)
-            }
-            self.view.layoutIfNeeded()
-        }
-    }
-    
     // MARK: - Helpers
     
     private func updateStars() {
         for (index, view) in starsStack.arrangedSubviews.enumerated() {
             guard let button = view as? UIButton else { continue }
             let starIndex = index + 1
-            let config = UIImage.SymbolConfiguration(pointSize: 32, weight: .regular)
+            let config = UIImage.SymbolConfiguration(pointSize: 22, weight: .regular)
             let imageName = starIndex <= selectedRating ? "star.fill" : "star"
             button.setImage(UIImage(systemName: imageName, withConfiguration: config), for: .normal)
         }
@@ -330,15 +279,30 @@ final class LeaveReviewViewController: UIViewController {
     
     private func animateIn() {
         containerView.transform = CGAffineTransform(translationX: 0, y: containerView.frame.height)
+        view.backgroundColor = UIColor.black.withAlphaComponent(0)
         
-        UIView.animate(withDuration: 0.3, delay: 0, options: .curveEaseOut) {
+        UIView.animate(
+            withDuration: 0.35,
+            delay: 0,
+            usingSpringWithDamping: 0.85,
+            initialSpringVelocity: 0.5,
+            options: [.curveEaseOut]
+        ) {
             self.containerView.transform = .identity
+            self.view.backgroundColor = UIColor.black.withAlphaComponent(0.5)
         }
     }
     
     private func animateOut(completion: @escaping () -> Void) {
-        UIView.animate(withDuration: 0.25, delay: 0, options: .curveEaseIn) {
-            self.containerView.transform = CGAffineTransform(translationX: 0, y: self.containerView.frame.height)
+        UIView.animate(
+            withDuration: 0.25,
+            delay: 0,
+            options: .curveEaseIn
+        ) {
+            self.containerView.transform = CGAffineTransform(
+                translationX: 0,
+                y: self.containerView.frame.height
+            )
             self.view.backgroundColor = .clear
         } completion: { _ in
             completion()

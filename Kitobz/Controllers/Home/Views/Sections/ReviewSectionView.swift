@@ -19,8 +19,6 @@ final class ReviewSectionView: UIView {
 
     var bookTitle: String = ""
 
-    // MARK: - UI
-
     private let titleLabel: UILabel = {
         let l = UILabel()
         l.font = .systemFont(ofSize: 18, weight: .semibold)
@@ -50,20 +48,20 @@ final class ReviewSectionView: UIView {
         let accent = UIColor(named: "AccentColor") ?? .systemBlue
 
         b.backgroundColor = accent.withAlphaComponent(0.12)
-        b.layer.cornerRadius = 28
+        b.layer.cornerRadius = 20
         b.layer.masksToBounds = true
 
         let icon = UIImage(systemName: "plus")?.withConfiguration(
-            UIImage.SymbolConfiguration(pointSize: 20, weight: .bold)
+            UIImage.SymbolConfiguration(pointSize: 12, weight: .bold)
         )
 
         b.setImage(icon, for: .normal)
         b.setTitle(" Оставить отзыв", for: .normal)
         b.setTitleColor(accent, for: .normal)
         b.tintColor = accent
-        b.titleLabel?.font = .systemFont(ofSize: 20, weight: .semibold)
+        b.titleLabel?.font = .systemFont(ofSize: 14, weight: .bold)
 
-        b.contentEdgeInsets = UIEdgeInsets(top: 18, left: 24, bottom: 18, right: 24)
+        b.contentEdgeInsets = UIEdgeInsets(top: 10, left: 14, bottom: 10, right: 14)
         b.imageEdgeInsets = UIEdgeInsets(top: 0, left: -6, bottom: 0, right: 6)
 
         return b
@@ -76,13 +74,11 @@ final class ReviewSectionView: UIView {
         didSet { collectionView.reloadData() }
     }
 
-    // MARK: - Init
-
     override init(frame: CGRect) {
         let layout = UICollectionViewFlowLayout()
         layout.scrollDirection = .horizontal
         layout.minimumLineSpacing = 1
-        layout.sectionInset = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
+        layout.sectionInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 16)
 
         collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
         collectionView.backgroundColor = .clear
@@ -103,10 +99,7 @@ final class ReviewSectionView: UIView {
         fatalError("init(coder:) has not been implemented")
     }
 
-    // MARK: - Setup
-
     private func setupStacks() {
-        // Header row: title | spacer | "Все"
         headerStack.axis = .horizontal
         headerStack.alignment = .center
         headerStack.spacing = 8
@@ -116,23 +109,20 @@ final class ReviewSectionView: UIView {
 
         addSubview(mainStack)
 
-        // Arrange content vertically
         mainStack.addArrangedSubview(headerStack)
         mainStack.addArrangedSubview(collectionView)
 
-        // Add button with its own container to have horizontal insets
         let buttonContainer = UIView()
         buttonContainer.addSubview(leaveReviewButton)
         leaveReviewButton.snp.makeConstraints {
             $0.top.bottom.equalToSuperview()
-            $0.leading.trailing.equalToSuperview().inset(16)
-            $0.height.equalTo(64)
+            $0.leading.trailing.equalToSuperview().inset(8)
+            $0.height.equalTo(50)
         }
         mainStack.addArrangedSubview(buttonContainer)
 
-        // Spacing after collection view
-        mainStack.setCustomSpacing(16, after: headerStack)
-        mainStack.setCustomSpacing(32, after: collectionView)
+        mainStack.setCustomSpacing(8, after: headerStack)
+        mainStack.setCustomSpacing(8, after: collectionView)
     }
 
     private func setupCollectionView() {
@@ -142,14 +132,12 @@ final class ReviewSectionView: UIView {
     }
 
     private func setupLayout() {
-        // Pin stack to edges with outer insets
         mainStack.snp.makeConstraints {
             $0.edges.equalToSuperview().inset(16)
         }
 
-        // Fixed height for the horizontal cards row
         collectionView.snp.makeConstraints {
-            $0.height.equalTo(210)
+            $0.height.equalTo(170)
         }
     }
 
@@ -162,22 +150,34 @@ final class ReviewSectionView: UIView {
         allLabel.addGestureRecognizer(tap)
     }
 
-    // MARK: - Actions
-
     private func updateLeaveReviewVisibility() {
         leaveReviewButton.isHidden = !showLeaveReviewButton
-        // Let the stack recalculate layout
         setNeedsLayout()
         layoutIfNeeded()
     }
 
     @objc private func didTapLeaveReview() {
+        guard let presentingVC = presentingViewController else { return }
+        
         let vc = LeaveReviewViewController()
         vc.bookTitle = bookTitle.isEmpty ? "Книга" : bookTitle
         vc.modalPresentationStyle = .overFullScreen
         vc.modalTransitionStyle = .crossDissolve
-
-        presentingViewController?.present(vc, animated: true)
+        
+        vc.view.alpha = 0
+        
+        presentingVC.present(vc, animated: false) {
+            UIView.animate(
+                withDuration: 0.4,
+                delay: 0,
+                usingSpringWithDamping: 0.9,
+                initialSpringVelocity: 0.5,
+                options: [.curveEaseOut, .allowUserInteraction],
+                animations: {
+                    vc.view.alpha = 1
+                }
+            )
+        }
     }
 
     @objc private func didTapAllReviews() {
@@ -196,8 +196,6 @@ final class ReviewSectionView: UIView {
         }
     }
 }
-
-// MARK: - CollectionView
 
 extension ReviewSectionView: UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
 
