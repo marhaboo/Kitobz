@@ -14,7 +14,7 @@ struct BooksProvider {
             coverImageName: "book1",
             title: "Война и мир",
             author: "Лев Толстой",
-            price: "75 TJS",
+            price: "249 TJS",
             oldPrice: nil,
             discountText: nil,
             id: "book.war.and.peace",
@@ -42,9 +42,9 @@ struct BooksProvider {
             coverImageName: "book2",
             title: "Преступление и наказание",
             author: "Фёдор Достоевский",
-            price: "45 TJS",
-            oldPrice: "63 TJS",
-            discountText: "-30%",
+            price: "169 TJS",
+            oldPrice: nil,
+            discountText: nil,
             id: "book.crime.and.punishment",
             bookDescription:
             """
@@ -67,9 +67,9 @@ struct BooksProvider {
             coverImageName: "book3",
             title: "Анна Каренина",
             author: "Лев Толстой",
-            price: "40 TJS",
-            oldPrice: "52 TJS",
-            discountText: "-25%",
+            price: "199 TJS",
+            oldPrice: nil,
+            discountText: nil,
             id: "book.anna.karenina",
             bookDescription:
             """
@@ -91,7 +91,7 @@ struct BooksProvider {
             coverImageName: "book4",
             title: "Люби себя",
             author: "Мария Иванова",
-            price: "48 TJS",
+            price: "149 TJS",
             oldPrice: nil,
             discountText: nil,
             id: "book.love.yourself",
@@ -115,7 +115,7 @@ struct BooksProvider {
             coverImageName: "book5",
             title: "К себе нежно",
             author: "Екатерина Петрова",
-            price: "50 TJS",
+            price: "159 TJS",
             oldPrice: nil,
             discountText: nil,
             id: "book.gentle.to.yourself",
@@ -134,8 +134,120 @@ struct BooksProvider {
             pageCount: 298,
             publishYear: 2023
         )
+        
+        let catMask = Book(
+                    coverImageName: "book6",
+                    title: "Кошачья маска",
+                    author: "Влад Райбер",
+                    price: "179 TJS",
+                    oldPrice: nil,
+                    discountText: nil,
+                    id: "book.cat.mask",
+                    bookDescription:
+                    """
+                    Мистический триллер, в котором реальность переплетается с кошмаром. Влад Райбер погружает читателя в атмосферу саспенса, где обычные вещи обретают пугающий смысл. 
+                    Главный герой сталкивается с тайной «кошачьей маски», которая меняет судьбы тех, кто осмелится её надеть. 
+                    Это история о скрытых сторонах человеческой души, страхах и расплате за любопытство. Идеально для любителей современной хоррор-прозы и психологических загадок.
+                    """,
+                    rating: 4.7,
+                    ageRating: "18+",
+                    language: "Русский",
+                    coverType: "Твёрдый",
+                    pageCount: 350,
+                    publishYear: 2023
+                )
 
-        let books = [warAndPeace, crimeAndPunishment, annaKarenina, loveYourself, gentleToYourself]
+                let chekhovStories = Book(
+                    coverImageName: "book7",
+                    title: "Большое собрание юмористических рассказов",
+                    author: "Антон Чехов",
+                    price: "219 TJS",
+                    oldPrice: "229 TJS",
+                    discountText: "-27%",
+                    id: "book.chekhov.stories",
+                    bookDescription:
+                    """
+                    Полное собрание раннего творчества великого классика. В этот том вошли самые яркие юмористические рассказы Чехова, в которых он с неподражаемой иронией высмеивает человеческие пороки, чинопочитание и глупость. 
+                    От «Смерти чиновника» до «Толстого и тонкого» — эти истории остаются невероятно актуальными и сегодня. 
+                    Мастерство краткости и точность деталей делают чтение этой книги истинным удовольствием для ценителей классической русской литературы.
+                    """,
+                    rating: 4.9,
+                    ageRating: "12+",
+                    language: "Русский",
+                    coverType: "Твёрдый",
+                    pageCount: 720,
+                    publishYear: 2021
+                )
+
+                let stationLikho = Book(
+                    coverImageName: "book8",
+                    title: "Станция Лихо (Ладный мир)",
+                    author: "Надя Сова",
+                    price: "189 TJS",
+                    oldPrice: "249 TJS",
+                    discountText: "-24%",
+                    id: "book.station.likho",
+                    bookDescription:
+                    """
+                    Захватывающее славянское фэнтези о грани между нашим миром и пугающим «Ладным миром». 
+                    Надя Сова создает уникальную мифологию, где привычные городские локации соседствуют с обителью древних существ. 
+                    Главная героиня оказывается втянута в опасное путешествие на станцию Лихо, из которой нет простого пути назад. 
+                    Книга наполнена фольклорными мотивами, мрачной атмосферой и поисками ответов на вопросы о семье и предназначении.
+                    """,
+                    rating: 4.8,
+                    ageRating: "16+",
+                    language: "Русский",
+                    coverType: "Твёрдый",
+                    pageCount: 416,
+                    publishYear: 2022
+                )
+
+                let manWithoutQualities = Book(
+                    coverImageName: "book9",
+                    title: "Человек без свойств. Том 1",
+                    author: "Роберт Музиль",
+                    price: "269 TJS",
+                    oldPrice: "349 TJS",
+                    discountText: "-23%",
+                    id: "book.man.without.qualities",
+                    bookDescription:
+                    """
+                    Один из самых значимых романов XX века, изменивший мировую литературу. Это глубокое философское исследование жизни в преддверии Первой мировой войны. 
+                    Музиль анализирует кризис личности и общества через призму главного героя Ульриха, который отказывается принимать готовые социальные роли. 
+                    Сложный, интеллектуальный и многослойный текст, объединяющий поколения читателей, ищущих ответы на фундаментальные вопросы бытия.
+                    """,
+                    rating: 4.5,
+                    ageRating: "18+",
+                    language: "Русский",
+                    coverType: "Твёрдый",
+                    pageCount: 840,
+                    publishYear: 1930
+                )
+
+                let ceruleanSea = Book(
+                    coverImageName: "book10",
+                    title: "Дом в лазурном море",
+                    author: "Ти Джей Клун",
+                    price: "179 TJS",
+                    oldPrice: "229 TJS",
+                    discountText: "-22%",
+                    id: "book.cerulean.sea",
+                    bookDescription:
+                    """
+                    Невероятно теплая и жизнеутверждающая история о том, что семья — это не всегда кровное родство. 
+                    Линус Бейкер, скромный инспектор по делам магической молодежи, отправляется на остров, где живут «опасные» дети. 
+                    Эта поездка меняет его представление о мире, добре и праве быть собой. 
+                    Ти Джей Клун создал настоящий литературный «антидепрессант», полный юмора, доброты и магии, который учит принимать тех, кто на нас не похож.
+                    """,
+                    rating: 4.9,
+                    ageRating: "16+",
+                    language: "Русский",
+                    coverType: "Мягкий",
+                    pageCount: 448,
+                    publishYear: 2020
+                )
+
+        let books = [warAndPeace, crimeAndPunishment, annaKarenina, loveYourself, gentleToYourself, catMask, chekhovStories, stationLikho, manWithoutQualities, ceruleanSea ]
 
         let seededKey = "kitobz_favorites_seeded_v1"
         if !UserDefaults.standard.bool(forKey: seededKey) {
@@ -148,7 +260,7 @@ struct BooksProvider {
         return books
     }
 
-    // New: returns books with merged reviews, recalculated ratings, and favorites applied
+    
     static func updatedBooks() -> [Book] {
         let base = baseBooks()
         let reviews = ReviewsProvider.loadReviews(for: base)

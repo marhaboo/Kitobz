@@ -59,7 +59,6 @@ final class BookCardCell: UICollectionViewCell {
         l.layer.cornerRadius = 12
         l.clipsToBounds = true
         
-        // Shadow for depth
         l.layer.shadowColor = UIColor.black.cgColor
         l.layer.shadowOffset = CGSize(width: 1, height: 1)
         l.layer.shadowOpacity = 0.3

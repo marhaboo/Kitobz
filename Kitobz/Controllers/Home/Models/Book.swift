@@ -16,7 +16,7 @@ struct Book {
     let discountText: String?
     let id: String
     let bookDescription: String
-    let rating: Double
+    var rating: Double
     
     let ageRating: String
     let language: String
@@ -27,7 +27,8 @@ struct Book {
     let quotes: [String]
     let otherBooksByAuthor: [Book]
     var isFavorite: Bool
-    
+    var isInCart: Bool
+
     init(coverImageName: String,
          title: String,
          author: String,
@@ -45,7 +46,8 @@ struct Book {
          reviews: [ReviewItem] = [],
          quotes: [String] = [],
          otherBooksByAuthor: [Book] = [],
-         isFavorite: Bool = false) {
+         isFavorite: Bool = false,
+         isInCart: Bool = false) {
         
         self.coverImageName = coverImageName
         self.title = title
@@ -65,5 +67,7 @@ struct Book {
         self.quotes = quotes
         self.otherBooksByAuthor = otherBooksByAuthor
         self.isFavorite = isFavorite
+        self.isInCart = isInCart
     }
 }
+

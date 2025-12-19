@@ -3,7 +3,6 @@
 //  Kitobz
 //
 //  Created by Boyмuroдова Marhabo on 05/12/25.
-//
 
 import UIKit
 import SnapKit
@@ -42,7 +41,6 @@ final class BookDetailViewController: UIViewController {
     private let bookRatingView = BookRatingView()
     private let reviewsSectionView = ReviewSectionView()
     
-    // Cart button container
     private let cartButtonContainer: UIView = {
         let v = UIView()
         v.backgroundColor = .clear
@@ -71,8 +69,20 @@ final class BookDetailViewController: UIViewController {
     }
 
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        navigationController?.setNavigationBarHidden(true, animated: false)
+    }
+    
+
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        navigationController?.setNavigationBarHidden(false, animated: false)
+    }
 
     override func viewDidLoad() {
+        navigationItem.hidesBackButton = true
         super.viewDidLoad()
         setupUI()
         bindData()
@@ -86,7 +96,6 @@ final class BookDetailViewController: UIViewController {
             $0.edges.equalToSuperview()
         }
         
-        // Add bottom padding to scroll view for cart button
         scrollView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: 90, right: 0)
 
         scrollView.addSubview(contentView)
@@ -128,8 +137,8 @@ final class BookDetailViewController: UIViewController {
 
         backButtonGlass.snp.makeConstraints {
             $0.top.equalTo(view.safeAreaLayoutGuide.snp.top).offset(8)
-            $0.leading.equalToSuperview().offset(16)
-            $0.width.height.equalTo(40)
+                $0.leading.equalToSuperview().offset(16)
+                $0.width.height.equalTo(40)
         }
 
         favoriteButtonGlass.snp.makeConstraints {
@@ -273,7 +282,6 @@ final class BookDetailViewController: UIViewController {
             self?.openAllReviews()
         }
         
-        // Setup cart button container
         view.addSubview(cartButtonContainer)
         cartButtonContainer.addSubview(addToCartButton)
         
@@ -303,6 +311,7 @@ final class BookDetailViewController: UIViewController {
         authorLabel.text = book.author
 
         book.isFavorite = FavoritesManager.shared.isFavorite(bookID: book.id)
+        book.isInCart = CartManager.shared.contains(book)
         
         let reviewsToShow = injectedReviews ?? book.reviews
         ratingView.configure(
@@ -323,31 +332,6 @@ final class BookDetailViewController: UIViewController {
         yearLabel.text = "\(book.publishYear) год"
 
         descriptionLabel.text = book.bookDescription.isEmpty ? "Описание отсутствует" : book.bookDescription
-        
-        // Configure cart button with price
-        let price = book.price
-        let buttonTitle = "Добавить в корзину\nот \(price)"
-        
-        let attributedString = NSMutableAttributedString(string: buttonTitle)
-        let fullRange = NSRange(location: 0, length: attributedString.length)
-        
-        // Style for "Добавить в корзину"
-        let titleRange = (buttonTitle as NSString).range(of: "Добавить в корзину")
-        attributedString.addAttribute(.font, value: UIFont.systemFont(ofSize: 17, weight: .semibold), range: titleRange)
-        attributedString.addAttribute(.foregroundColor, value: UIColor.white, range: titleRange)
-        
-        // Style for price line
-        let priceLineRange = (buttonTitle as NSString).range(of: "от \(price)")
-        attributedString.addAttribute(.font, value: UIFont.systemFont(ofSize: 16, weight: .regular), range: priceLineRange)
-        attributedString.addAttribute(.foregroundColor, value: UIColor.white.withAlphaComponent(0.9), range: priceLineRange)
-        
-        // Center alignment
-        let paragraphStyle = NSMutableParagraphStyle()
-        paragraphStyle.alignment = .center
-        paragraphStyle.lineSpacing = 2
-        attributedString.addAttribute(.paragraphStyle, value: paragraphStyle, range: fullRange)
-        
-        addToCartButton.setAttributedTitle(attributedString, for: .normal)
 
         isExpanded = false
         descriptionLabel.numberOfLines = 5
@@ -361,6 +345,7 @@ final class BookDetailViewController: UIViewController {
         updateFavoriteButton(animated: false)
         view.layoutIfNeeded()
         updateReadMoreVisibility()
+        updateCartButton()
 
         let filteredReviews: [ReviewItem]
         if let injected = injectedReviews {
@@ -382,7 +367,6 @@ final class BookDetailViewController: UIViewController {
     }
     
     @objc private func didTapAddToCart() {
-        // Add animation feedback
         UIView.animate(withDuration: 0.1, animations: {
             self.addToCartButton.transform = CGAffineTransform(scaleX: 0.95, y: 0.95)
         }) { _ in
@@ -390,14 +374,29 @@ final class BookDetailViewController: UIViewController {
                 self.addToCartButton.transform = .identity
             }
         }
-        
-        // TODO: Add book to cart logic
-        print("Added to cart: \(book.title)")
-        
-        // Show success feedback
-        let alert = UIAlertController(title: "Добавлено в корзину", message: "\(book.title) добавлена в вашу корзину", preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "OK", style: .default))
-        present(alert, animated: true)
+
+        if book.isInCart {
+            CartManager.shared.remove(bookID: book.id)
+            book.isInCart = false
+            let alert = UIAlertController(
+                title: "Удалено из корзины",
+                message: "\(book.title) удалена из корзины",
+                preferredStyle: .alert
+            )
+            alert.addAction(UIAlertAction(title: "OK", style: .default))
+            present(alert, animated: true)
+        } else {
+            CartManager.shared.add(book)
+            book.isInCart = true
+            let alert = UIAlertController(
+                title: "Добавлено в корзину",
+                message: "\(book.title) добавлена в вашу корзину",
+                preferredStyle: .alert
+            )
+            alert.addAction(UIAlertAction(title: "OK", style: .default))
+            present(alert, animated: true)
+        }
+        updateCartButton()
     }
 
     @objc private func openAllReviews() {
@@ -439,6 +438,38 @@ final class BookDetailViewController: UIViewController {
         }
     }
 
+    private func updateCartButton() {
+        if book.isInCart {
+            let title = "Удалить из корзины"
+            let attr = NSMutableAttributedString(string: title)
+            let range = NSRange(location: 0, length: attr.length)
+            attr.addAttribute(.font, value: UIFont.systemFont(ofSize: 17, weight: .semibold), range: range)
+            attr.addAttribute(.foregroundColor, value: UIColor.white, range: range)
+            let paragraph = NSMutableParagraphStyle()
+            paragraph.alignment = .center
+            attr.addAttribute(.paragraphStyle, value: paragraph, range: range)
+            addToCartButton.setAttributedTitle(attr, for: .normal)
+            addToCartButton.backgroundColor = UIColor(named: "AccentColor")
+        } else {
+            let price = book.price
+            let buttonTitle = "Добавить в корзину\n\(price)"
+            let attributedString = NSMutableAttributedString(string: buttonTitle)
+            let fullRange = NSRange(location: 0, length: attributedString.length)
+            let titleRange = (buttonTitle as NSString).range(of: "Добавить в корзину")
+            attributedString.addAttribute(.font, value: UIFont.systemFont(ofSize: 17, weight: .semibold), range: titleRange)
+            attributedString.addAttribute(.foregroundColor, value: UIColor.white, range: titleRange)
+            let priceLineRange = (buttonTitle as NSString).range(of: "\(price)")
+            attributedString.addAttribute(.font, value: UIFont.systemFont(ofSize: 16, weight: .regular), range: priceLineRange)
+            attributedString.addAttribute(.foregroundColor, value: UIColor.white.withAlphaComponent(0.9), range: priceLineRange)
+            let paragraphStyle = NSMutableParagraphStyle()
+            paragraphStyle.alignment = .center
+            paragraphStyle.lineSpacing = 2
+            attributedString.addAttribute(.paragraphStyle, value: paragraphStyle, range: fullRange)
+            addToCartButton.setAttributedTitle(attributedString, for: .normal)
+            addToCartButton.backgroundColor = UIColor(named: "AccentColor") ?? .systemBlue
+        }
+    }
+
     private func updateReadMoreVisibility() {
         let text = descriptionLabel.text ?? ""
         var width = bottomCardView.bounds.width - 40
@@ -472,16 +503,6 @@ final class BookDetailViewController: UIViewController {
         }
         view.layoutIfNeeded()
     }
-
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        navigationController?.setNavigationBarHidden(true, animated: false)
-    }
-
-    override func viewWillDisappear(_ animated: Bool) {
-        super.viewWillDisappear(animated)
-        navigationController?.setNavigationBarHidden(false, animated: false)
-    }
 }
 
 private extension UIView {
@@ -491,3 +512,4 @@ private extension UIView {
 private extension UIStackView {
     func addArrangedSubviews(_ views: [UIView]) { views.forEach { addArrangedSubview($0) } }
 }
+

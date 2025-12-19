@@ -1,5 +1,5 @@
 //
-//  BooksViewController.swift
+//  FavoritesViewController.swift
 //  Favorites
 //
 //  Created by Madina on 01/12/25.
@@ -11,6 +11,9 @@ class FavoritesViewController: UIViewController {
     private var books: [Book] = []
     private var allReviews: [ReviewItem] = []
     private let collectionView: UICollectionView
+    private let emptyStateView = UIView()
+    private let emptyStateLabel = UILabel()
+    private let emptyStateIcon = UILabel()
 
     // MARK: - Init
     init() {
@@ -42,6 +45,7 @@ class FavoritesViewController: UIViewController {
         view.backgroundColor = UIColor(named: "Background")
         title = "Избранные"
         setupCollectionView()
+        setupEmptyStateView()
         setupObservers()
         loadData()
     }
@@ -69,6 +73,42 @@ class FavoritesViewController: UIViewController {
         ])
     }
 
+    private func setupEmptyStateView() {
+        emptyStateView.translatesAutoresizingMaskIntoConstraints = false
+        emptyStateView.isHidden = true
+        
+        emptyStateIcon.translatesAutoresizingMaskIntoConstraints = false
+        emptyStateIcon.text = "📚"
+        emptyStateIcon.font = .systemFont(ofSize: 60)
+        emptyStateIcon.textAlignment = .center
+        
+        emptyStateLabel.translatesAutoresizingMaskIntoConstraints = false
+        emptyStateLabel.text = "У вас пока нет избранных книг\n\nДобавьте книги в избранное, чтобы они отображались здесь"
+        emptyStateLabel.font = .systemFont(ofSize: 16, weight: .regular)
+        emptyStateLabel.textColor = .secondaryLabel
+        emptyStateLabel.textAlignment = .center
+        emptyStateLabel.numberOfLines = 0
+        
+        emptyStateView.addSubview(emptyStateIcon)
+        emptyStateView.addSubview(emptyStateLabel)
+        view.addSubview(emptyStateView)
+        
+        NSLayoutConstraint.activate([
+            emptyStateView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            emptyStateView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            emptyStateView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 40),
+            emptyStateView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -40),
+            
+            emptyStateIcon.topAnchor.constraint(equalTo: emptyStateView.topAnchor),
+            emptyStateIcon.centerXAnchor.constraint(equalTo: emptyStateView.centerXAnchor),
+            
+            emptyStateLabel.topAnchor.constraint(equalTo: emptyStateIcon.bottomAnchor, constant: 16),
+            emptyStateLabel.leadingAnchor.constraint(equalTo: emptyStateView.leadingAnchor),
+            emptyStateLabel.trailingAnchor.constraint(equalTo: emptyStateView.trailingAnchor),
+            emptyStateLabel.bottomAnchor.constraint(equalTo: emptyStateView.bottomAnchor)
+        ])
+    }
+
     private func setupObservers() {
         NotificationCenter.default.addObserver(self, selector: #selector(handleFavoritesChanged), name: .favoritesDidChange, object: nil)
     }
@@ -78,14 +118,11 @@ class FavoritesViewController: UIViewController {
     }
 
     private func loadData() {
-        // 1) Load base books
         let base = BooksProvider.baseBooks()
 
-        // 2) Load reviews for these books
         let reviews = ReviewsProvider.loadReviews(for: base)
         self.allReviews = reviews
 
-        // 3) Group reviews by bookId and merge into books; recompute rating
         let reviewsByBookId = Dictionary(grouping: reviews, by: { $0.bookId })
         let merged: [Book] = base.map { book in
             let bookReviews = reviewsByBookId[book.id] ?? []
@@ -118,12 +155,18 @@ class FavoritesViewController: UIViewController {
             )
         }
 
-        // 4) Filter by FavoritesManager
         let favIDs = Set(FavoritesManager.shared.allFavoriteIDs())
         books = merged.filter { favIDs.contains($0.id) }
 
-        // 5) Reload
+        updateEmptyState()
+
         collectionView.reloadData()
+    }
+
+    private func updateEmptyState() {
+        let isEmpty = books.isEmpty
+        emptyStateView.isHidden = !isEmpty
+        collectionView.isHidden = isEmpty
     }
 
     private func book(at indexPath: IndexPath) -> Book {

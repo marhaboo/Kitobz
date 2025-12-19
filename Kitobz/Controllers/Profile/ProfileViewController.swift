@@ -58,7 +58,7 @@ class ProfileViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = UIColor(named: "Background") ?? .systemBackground
+        view.backgroundColor = UIColor(named: "Background")
         navigationItem.title = "Профиль"
         
         setupTableView()

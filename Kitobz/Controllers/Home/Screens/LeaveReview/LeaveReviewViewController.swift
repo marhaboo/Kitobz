@@ -104,10 +104,9 @@ final class LeaveReviewViewController: UIViewController {
         let b = UIButton(type: .system)
         b.setTitle("Отправить отзыв", for: .normal)
         b.titleLabel?.font = .systemFont(ofSize: 17, weight: .semibold)
-        b.backgroundColor = .systemBlue
+        b.backgroundColor = UIColor(named: "AccentColor")
         b.setTitleColor(.white, for: .normal)
-        b.setTitleColor(.white.withAlphaComponent(0.5), for: .disabled)
-        b.layer.cornerRadius = 12
+        b.layer.cornerRadius = 16
         b.isEnabled = false
         return b
     }()
@@ -157,7 +156,7 @@ final class LeaveReviewViewController: UIViewController {
     private func setupStars() {
         for i in 1...5 {
             let button = UIButton(type: .system)
-            let config = UIImage.SymbolConfiguration(pointSize: 32, weight: .regular)
+            let config = UIImage.SymbolConfiguration(pointSize: 22, weight: .regular)
             button.setImage(UIImage(systemName: "star", withConfiguration: config), for: .normal)
             button.tintColor = .systemOrange
             button.tag = i
@@ -274,7 +273,7 @@ final class LeaveReviewViewController: UIViewController {
         let hasRating = selectedRating > 0
         
         submitButton.isEnabled = hasMinChars && hasRating
-        submitButton.backgroundColor = submitButton.isEnabled ? .systemBlue : .systemGray4
+        submitButton.backgroundColor = submitButton.isEnabled ? UIColor(named: "AccentColor") : .systemGray4
     }
     
     private func animateIn() {

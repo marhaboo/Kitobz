@@ -12,12 +12,14 @@ final class ReviewSectionView: UIView {
 
     weak var presentingViewController: UIViewController?
     var onTapShowAllReviews: (() -> Void)?
+    var onReviewAdded: ((ReviewItem) -> Void)?
+
+    var bookId: String = ""
+    var bookTitle: String = ""
 
     var showLeaveReviewButton: Bool = false {
         didSet { updateLeaveReviewVisibility() }
     }
-
-    var bookTitle: String = ""
 
     private let titleLabel: UILabel = {
         let l = UILabel()
@@ -48,7 +50,7 @@ final class ReviewSectionView: UIView {
         let accent = UIColor(named: "AccentColor") ?? .systemBlue
 
         b.backgroundColor = accent.withAlphaComponent(0.12)
-        b.layer.cornerRadius = 20
+        b.layer.cornerRadius = 16
         b.layer.masksToBounds = true
 
         let icon = UIImage(systemName: "plus")?.withConfiguration(
@@ -133,7 +135,7 @@ final class ReviewSectionView: UIView {
 
     private func setupLayout() {
         mainStack.snp.makeConstraints {
-            $0.edges.equalToSuperview().inset(16)
+            $0.edges.equalToSuperview().inset(12)
         }
 
         collectionView.snp.makeConstraints {
@@ -163,6 +165,44 @@ final class ReviewSectionView: UIView {
         vc.bookTitle = bookTitle.isEmpty ? "Книга" : bookTitle
         vc.modalPresentationStyle = .overFullScreen
         vc.modalTransitionStyle = .crossDissolve
+        
+        // Handle the review submission
+        vc.onReviewSubmitted = { [weak self] rating, reviewText in
+            guard let self = self else { return }
+            
+            // Create new review with current date
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateFormat = "dd.MM.yyyy"
+            let dateString = dateFormatter.string(from: Date())
+            
+            let newReview = ReviewItem(
+                bookId: self.bookId,
+                userName: "Вы", // Or get from user session
+                date: dateString,
+                bookCoverImageName: "", // Optional
+                bookTitle: self.bookTitle,
+                rating: rating,
+                reviewText: reviewText
+            )
+            
+            // Add to beginning of items array
+            self.items.insert(newReview, at: 0)
+            
+            // Scroll to show the new review
+            if !self.items.isEmpty {
+                self.collectionView.scrollToItem(
+                    at: IndexPath(item: 0, section: 0),
+                    at: .left,
+                    animated: true
+                )
+            }
+            
+            // Notify parent view controller
+            self.onReviewAdded?(newReview)
+            
+            // Show success message
+            self.showSuccessMessage()
+        }
         
         vc.view.alpha = 0
         
@@ -194,6 +234,18 @@ final class ReviewSectionView: UIView {
         UIView.animate(withDuration: 0.15) {
             self.leaveReviewButton.transform = .identity
         }
+    }
+    
+    private func showSuccessMessage() {
+        guard let presentingVC = presentingViewController else { return }
+        
+        let alert = UIAlertController(
+            title: "Спасибо!",
+            message: "Ваш отзыв успешно добавлен",
+            preferredStyle: .alert
+        )
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        presentingVC.present(alert, animated: true)
     }
 }
 

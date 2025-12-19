@@ -28,12 +28,10 @@ final class FavoritesManager {
         storage.contains(bookID)
     }
 
-    // Public: normal path posts notification
     func setFavorite(bookID: String, isFavorite: Bool) {
         applyFavorite(bookID: bookID, isFavorite: isFavorite, shouldNotify: true)
     }
 
-    // Internal: used for seeding to avoid notification loops
     func setFavoriteSilently(bookID: String, isFavorite: Bool) {
         applyFavorite(bookID: bookID, isFavorite: isFavorite, shouldNotify: false)
     }

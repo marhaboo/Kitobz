@@ -54,6 +54,7 @@ final class SearchViewController: UIViewController {
     private func setupSearchController() {
         searchController.searchResultsUpdater = self
         searchController.obscuresBackgroundDuringPresentation = false
+        searchController.hidesNavigationBarDuringPresentation = true
         searchController.searchBar.placeholder = "Поиск по названию или автору"
         navigationItem.searchController = searchController
         navigationItem.hidesSearchBarWhenScrolling = false
@@ -103,12 +104,13 @@ extension SearchViewController: UICollectionViewDelegate, UICollectionViewDataSo
 
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         let book = filteredBooks[indexPath.item]
+        searchController
         if let onBookSelected {
             onBookSelected(book)
         } else {
             let reviews = ReviewsProvider.loadReviews(for: [book]).filter { $0.bookId == book.id }
             let vc = BookDetailViewController(book: book, reviews: reviews)
-            navigationController?.setNavigationBarHidden(true, animated: true)
+            
             navigationController?.pushViewController(vc, animated: true)
         }
     }

@@ -8,26 +8,39 @@
 import UIKit
 import SnapKit
 
-struct CartItem {
-    let title: String
-    let author: String
-    let price: Int
-    var isSelected: Bool = false
-}
-
 class CartViewController: UIViewController {
-
-    private var cartItems: [CartItem] = [
-        CartItem(title: "Book 1", author: "Author 1", price: 100),
-        CartItem(title: "Book 2", author: "Author 2", price: 200),
-        CartItem(title: "Book 3", author: "Author 3", price: 150)
-    ]
 
     private let tableView: UITableView = {
         let table = UITableView()
         table.register(CartCell.self, forCellReuseIdentifier: "CartCell")
         table.separatorStyle = .none
+        table.backgroundColor = .clear
+        table.contentInset = UIEdgeInsets(top: 12, left: 0, bottom: 12, right: 0)
         return table
+    }()
+    
+    private let emptyStateView: UIView = {
+        let view = UIView()
+        view.isHidden = true
+        return view
+    }()
+    
+    private let emptyStateIcon: UILabel = {
+        let label = UILabel()
+        label.text = "🛒"
+        label.font = .systemFont(ofSize: 60)
+        label.textAlignment = .center
+        return label
+    }()
+    
+    private let emptyStateLabel: UILabel = {
+        let label = UILabel()
+        label.text = "Ваша корзина пуста\n\nДобавьте книги в корзину, чтобы оформить заказ"
+        label.font = .systemFont(ofSize: 16, weight: .regular)
+        label.textColor = .secondaryLabel
+        label.textAlignment = .center
+        label.numberOfLines = 0
+        return label
     }()
     
     private let bottomView: UIView = {
@@ -53,22 +66,35 @@ class CartViewController: UIViewController {
         return button
     }()
     
+    private var items: [Book] { CartManager.shared.items }
+
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .white
+        view.backgroundColor = UIColor(named: "Background")
         
         navigationItem.title = "Корзина"
-        navigationController?.navigationBar.titleTextAttributes = [
-            .font: UIFont.boldSystemFont(ofSize: 24)
-        ]
         
         tableView.dataSource = self
         tableView.delegate = self
         
         setupLayout()
+        setupEmptyStateView()
         updateTotal()
+        updateEmptyState()
         
         checkoutButton.addTarget(self, action: #selector(didTapCheckout), for: .touchUpInside)
+
+        NotificationCenter.default.addObserver(self, selector: #selector(onCartChanged), name: .cartDidChange, object: nil)
+    }
+
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
+    
+    @objc private func onCartChanged() {
+        tableView.reloadData()
+        updateTotal()
+        updateEmptyState()
     }
     
     private func setupLayout() {
@@ -102,16 +128,44 @@ class CartViewController: UIViewController {
         }
     }
     
+    private func setupEmptyStateView() {
+        view.addSubview(emptyStateView)
+        emptyStateView.addSubview(emptyStateIcon)
+        emptyStateView.addSubview(emptyStateLabel)
+        
+        emptyStateView.snp.makeConstraints { make in
+            make.centerX.equalToSuperview()
+            make.centerY.equalToSuperview()
+            make.left.right.equalToSuperview().inset(40)
+        }
+        
+        emptyStateIcon.snp.makeConstraints { make in
+            make.top.equalToSuperview()
+            make.centerX.equalToSuperview()
+        }
+        
+        emptyStateLabel.snp.makeConstraints { make in
+            make.top.equalTo(emptyStateIcon.snp.bottom).offset(16)
+            make.left.right.equalToSuperview()
+            make.bottom.equalToSuperview()
+        }
+    }
+    
+    private func updateEmptyState() {
+        let isEmpty = items.isEmpty
+        emptyStateView.isHidden = !isEmpty
+        tableView.isHidden = isEmpty
+        bottomView.isHidden = isEmpty
+    }
+    
     private func updateTotal() {
-        let sum = cartItems.reduce(0) { $0 + ($1.isSelected ? $1.price : 0) }
+        let sum = CartManager.shared.totalAmount()
         totalLabel.text = "Итого: \(sum) сомони"
     }
     
     @objc private func didTapCheckout() {
-        let selectedItems = cartItems.filter { $0.isSelected }
-        
-        // ❗️ Если ничего не выбрано — не пускаем дальше
-        guard !selectedItems.isEmpty else {
+        let selected = CartManager.shared.selectedItems()
+        guard !selected.isEmpty else {
             let alert = UIAlertController(
                 title: "Корзина пуста",
                 message: "Выберите хотя бы одну книгу",
@@ -122,12 +176,10 @@ class CartViewController: UIViewController {
             return
         }
         
-        // Считаем итоговую сумму
-        let total = selectedItems.reduce(0) { $0 + $1.price }
-        
+        let total = CartManager.shared.totalAmount()
         let checkoutVC = CheckoutViewController()
-        checkoutVC.selectedItems = selectedItems
-        checkoutVC.totalAmount = total   // ✅ ПЕРЕДАЁМ СУММУ
+        checkoutVC.selectedItems = selected
+        checkoutVC.totalAmount = total
         
         navigationController?.pushViewController(checkoutVC, animated: true)
     }
@@ -136,51 +188,33 @@ class CartViewController: UIViewController {
 extension CartViewController: UITableViewDataSource, UITableViewDelegate {
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return cartItems.count
+        return items.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+
         let cell = tableView.dequeueReusableCell(withIdentifier: "CartCell", for: indexPath) as! CartCell
+        let book = items[indexPath.row]
+
+        let isSelected = CartManager.shared.isSelected(bookID: book.id)
+        cell.configure(with: book, isSelected: isSelected)
         
-        let item = cartItems[indexPath.row]
-        cell.configure(
-            bookName: item.title,
-            author: item.author,
-            price: item.price,
-            isSelected: item.isSelected
-        )
-        
-        // ВАЖНО: правильный callback (без indexPath из прошлого)
-        cell.onCheckTap = { [weak self, weak cell] in
-            guard let self = self else { return }
-            guard let cell = cell else { return }
-            
-            // Получаем актуальный indexPath ячейки
-            guard let tappedIndexPath = tableView.indexPath(for: cell) else { return }
-            
-            // Переключаем выбор
-            self.cartItems[tappedIndexPath.row].isSelected.toggle()
-            
-            // Обновляем сумму
-            self.updateTotal()
-            
-            // Обновляем UI ячейки
-            self.tableView.reloadRows(at: [tappedIndexPath], with: .none)
+        cell.onCheckTap = { [weak tableView] in
+            CartManager.shared.toggleSelected(bookID: book.id)
+            if let ip = tableView?.indexPath(for: cell) {
+                tableView?.reloadRows(at: [ip], with: .none)
+            }
         }
-        
         return cell
     }
 
-    
-    // ✅ Свайп для удаления
     func tableView(_ tableView: UITableView,
                    trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath)
     -> UISwipeActionsConfiguration? {
         
         let deleteAction = UIContextualAction(style: .destructive, title: "Удалить") { _, _, finish in
-            self.cartItems.remove(at: indexPath.row)
-            tableView.deleteRows(at: [indexPath], with: .automatic)
-            self.updateTotal()
+            let book = self.items[indexPath.row]
+            CartManager.shared.remove(bookID: book.id)
             finish(true)
         }
         

@@ -8,7 +8,7 @@
 import Foundation
 
 struct Order {
-    let items: [CartItem]
+    let items: [Book]
     let totalAmount: Int
     let date: Date
 }

@@ -50,7 +50,6 @@ final class HomeViewController: UIViewController {
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        // Ensure icon and appearance are in sync if changed elsewhere (e.g., Settings)
         updateThemeToggleIcon()
         applyAppearanceForCurrentStyle()
     }
@@ -60,15 +59,17 @@ final class HomeViewController: UIViewController {
         bar?.prefersLargeTitles = false
         bar?.tintColor = UIColor.label
 
+        // Left menu button - opens Settings
         let menuButton = UIButton(type: .system)
         menuButton.setImage(UIImage(systemName: "line.horizontal.3"), for: .normal)
         menuButton.tintColor = UIColor.label
-        menuButton.addTarget(self, action: #selector(didTapThemeToggle), for: .touchUpInside)
+        menuButton.addTarget(self, action: #selector(didTapMenuButton), for: .touchUpInside)
         menuButton.snp.makeConstraints { make in
             make.size.equalTo(CGSize(width: 28, height: 28))
         }
         navigationItem.leftBarButtonItem = UIBarButtonItem(customView: menuButton)
 
+        // Center logo
         let logo = UIImageView(image: UIImage(named: "logo"))
         logo.contentMode = .scaleAspectFit
         let titleWrapper = UIView()
@@ -80,6 +81,7 @@ final class HomeViewController: UIViewController {
         }
         navigationItem.titleView = titleWrapper
 
+        // Right theme toggle button
         let themeButton = UIButton(type: .system)
         themeButton.addTarget(self, action: #selector(didTapThemeToggle), for: .touchUpInside)
         themeButton.tintColor = UIColor.label
@@ -209,14 +211,14 @@ final class HomeViewController: UIViewController {
 
         allBooks = updatedBooks
 
-        if allBooks.count >= 5 {
-            bestBooks = [allBooks[0], allBooks[3], allBooks[0], allBooks[4]]
-            recommendedBooks = [allBooks[4], allBooks[3], allBooks[0], allBooks[4]]
-            discountBooks = [allBooks[1], allBooks[2], allBooks[1], allBooks[2]]
+        if allBooks.count >= 10 {
+            bestBooks = Array(allBooks[0...3])
+            recommendedBooks = Array(allBooks[4...6])
+            discountBooks = Array(allBooks[7...])
         } else {
             bestBooks = allBooks
-            recommendedBooks = allBooks
-            discountBooks = allBooks
+            recommendedBooks = allBooks.reversed()
+            discountBooks = allBooks.shuffled()
         }
 
         banners = BannersProvider.loadBanners()
@@ -278,6 +280,43 @@ final class HomeViewController: UIViewController {
                 reviews: self.reviews
             )
             self.navigationController?.pushViewController(allReviewsVC, animated: true)
+        }
+        
+        reviewSection.onReviewAdded = { [weak self] newReview in
+            guard let self = self else { return }
+            
+            // Add to main reviews array
+            self.reviews.insert(newReview, at: 0)
+            
+            // Update the book's rating
+            self.updateBookRatings(for: newReview.bookId)
+        }
+    }
+    
+    private func updateBookRatings(for bookId: String) {
+        // Find the book and update its rating
+        if let index = allBooks.firstIndex(where: { $0.id == bookId }) {
+            let bookReviews = reviews.filter { $0.bookId == bookId }
+            
+            if !bookReviews.isEmpty {
+                let sum = bookReviews.reduce(0) { $0 + $1.rating }
+                let avg = Double(sum) / Double(bookReviews.count)
+                allBooks[index].rating = avg
+            }
+            
+            // Update the sections if needed
+            if let bestIndex = bestBooks.firstIndex(where: { $0.id == bookId }) {
+                bestBooks[bestIndex] = allBooks[index]
+                bestBooksSection.setBooks(bestBooks)
+            }
+            if let recIndex = recommendedBooks.firstIndex(where: { $0.id == bookId }) {
+                recommendedBooks[recIndex] = allBooks[index]
+                recommendedSection.setBooks(recommendedBooks)
+            }
+            if let discIndex = discountBooks.firstIndex(where: { $0.id == bookId }) {
+                discountBooks[discIndex] = allBooks[index]
+                discountSection.setBooks(discountBooks)
+            }
         }
     }
 
@@ -361,8 +400,14 @@ final class HomeViewController: UIViewController {
         let vc = BookDetailViewController(book: book, reviews: filtered)
         navigationController?.pushViewController(vc, animated: true)
     }
-
-    // Toggle theme like in Settings: persist and apply at window level
+    
+    // MARK: - Button Actions
+    
+    @objc private func didTapMenuButton() {
+        let settingsVC = SettingsViewController()
+        navigationController?.pushViewController(settingsVC, animated: true)
+    }
+    
     @objc private func didTapThemeToggle() {
         let current = UserDefaults.standard.bool(forKey: "darkMode")
         let newValue = !current
@@ -375,7 +420,6 @@ final class HomeViewController: UIViewController {
                 window.overrideUserInterfaceStyle = newValue ? .dark : .light
             }
         } else {
-            // Fallback: apply to nav and self if window not yet available
             overrideUserInterfaceStyle = newValue ? .dark : .light
             navigationController?.overrideUserInterfaceStyle = overrideUserInterfaceStyle
         }
@@ -384,4 +428,3 @@ final class HomeViewController: UIViewController {
         applyAppearanceForCurrentStyle()
     }
 }
-
