@@ -1,5 +1,5 @@
 //
-//  Banner.swift
+//  BannerCollectionViewCell.swift
 //  Kitobz
 //
 //  Created by Boymurodova Marhabo on 02/12/25.
@@ -7,14 +7,12 @@
 
 import UIKit
 
-
-
 class BannerCollectionViewCell: UICollectionViewCell {
     
-    //MARK: - Properties
+    // MARK: - Properties
     static let id = "BannerCollectionViewCell"
     
-    //MARK: - UI ELEMENTS
+    // MARK: - UI ELEMENTS
     private let imageView: UIImageView = {
         let iv = UIImageView()
         iv.contentMode = .scaleAspectFill
@@ -31,7 +29,6 @@ class BannerCollectionViewCell: UICollectionViewCell {
         return gradient
     }()
     
-    
     override init(frame: CGRect) {
         super.init(frame: frame)
         contentView.addSubview(imageView)
@@ -39,18 +36,16 @@ class BannerCollectionViewCell: UICollectionViewCell {
     }
     
     required init?(coder: NSCoder) {
-           fatalError("init(coder:) has not been implemented")
-       }
+        fatalError("init(coder:) has not been implemented")
+    }
     
     override func layoutSubviews() {
-          super.layoutSubviews()
-          imageView.frame = contentView.bounds
-          gradientLayer.frame = imageView.bounds
-      }
+        super.layoutSubviews()
+        imageView.frame = contentView.bounds
+        gradientLayer.frame = imageView.bounds
+    }
 
-      func configure(with banner: Banner) {
-          imageView.image = UIImage(named: banner.imageName)
-
-      }
-    
+    func configure(with banner: Banner) {
+        imageView.image = UIImage(named: banner.imageName)
+    }
 }

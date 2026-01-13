@@ -2,7 +2,7 @@
 //  RoundCardSectionView.swift
 //  Kitobz
 //
-//  Created by Boymurodова Marhabo on 03/12/25.
+//  Created by Boymuroдова Marhabo on 03/12/25.
 //
 
 import UIKit
@@ -27,6 +27,14 @@ final class RoundCardSectionView: UIView {
         didSet { collectionView.reloadData() }
     }
 
+    // Seen flags to control ring style
+    var seenFlags: [Bool] = [] {
+        didSet { collectionView.reloadData() }
+    }
+
+    // Tap callback
+    var onItemSelected: ((Int) -> Void)?
+
     // MARK: - Init
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -43,7 +51,7 @@ final class RoundCardSectionView: UIView {
         addSubview(collectionView)
         collectionView.snp.makeConstraints { make in
             make.edges.equalToSuperview()
-            make.height.equalTo(130) // высота под круг + подпись
+            make.height.equalTo(130)
         }
     }
 
@@ -51,6 +59,11 @@ final class RoundCardSectionView: UIView {
         collectionView.register(RoundCardCell.self, forCellWithReuseIdentifier: RoundCardCell.identifier)
         collectionView.dataSource = self
         collectionView.delegate = self
+    }
+
+    func reloadItem(at index: Int) {
+        guard index >= 0, index < items.count else { return }
+        collectionView.reloadItems(at: [IndexPath(item: index, section: 0)])
     }
 }
 
@@ -63,13 +76,19 @@ extension RoundCardSectionView: UICollectionViewDataSource, UICollectionViewDele
         guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: RoundCardCell.identifier, for: indexPath) as? RoundCardCell else {
             return UICollectionViewCell()
         }
-        cell.configure(with: items[indexPath.item])
+        let seen = (indexPath.item < seenFlags.count) ? seenFlags[indexPath.item] : false
+        cell.configure(with: items[indexPath.item], seen: seen)
         return cell
     }
 
     func collectionView(_ collectionView: UICollectionView,
                         layout collectionViewLayout: UICollectionViewLayout,
                         sizeForItemAt indexPath: IndexPath) -> CGSize {
-        CGSize(width: 96, height: 122) // круг 96 + подпись
+        CGSize(width: 96, height: 122)
+    }
+
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        onItemSelected?(indexPath.item)
     }
 }
+

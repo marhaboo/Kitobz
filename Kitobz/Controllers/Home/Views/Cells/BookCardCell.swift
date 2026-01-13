@@ -45,7 +45,7 @@ final class BookCardCell: UICollectionViewCell {
 
     private let oldPriceLabel: UILabel = {
         let l = UILabel()
-        l.font = .systemFont(ofSize: 13)
+        l.font = .systemFont(ofSize: 12)
         l.textColor = .secondaryLabel
         return l
     }()
@@ -54,10 +54,16 @@ final class BookCardCell: UICollectionViewCell {
         let l = UILabel()
         l.font = .systemFont(ofSize: 12, weight: .bold)
         l.textColor = .white
-        l.backgroundColor = .systemRed
         l.textAlignment = .center
-        l.layer.cornerRadius = 6
+        l.backgroundColor = .systemRed
+        l.layer.cornerRadius = 12
         l.clipsToBounds = true
+        
+        l.layer.shadowColor = UIColor.black.cgColor
+        l.layer.shadowOffset = CGSize(width: 1, height: 1)
+        l.layer.shadowOpacity = 0.3
+        l.layer.shadowRadius = 2
+        
         l.isHidden = true
         return l
     }()
@@ -76,7 +82,7 @@ final class BookCardCell: UICollectionViewCell {
     private func setupUI() {
         contentView.layer.cornerRadius = 16
         contentView.backgroundColor = .clear
-        contentView.layer.masksToBounds = true
+        contentView.layer.masksToBounds = false // allow shadow
 
         contentView.addSubview(coverImageView)
         contentView.addSubview(titleLabel)
@@ -111,16 +117,19 @@ final class BookCardCell: UICollectionViewCell {
             make.leading.equalTo(priceLabel.snp.trailing).offset(6)
         }
 
+        // New badge position: top-right with ribbon style
         discountBadge.snp.makeConstraints { make in
-            make.top.equalToSuperview().offset(10)
-            make.leading.equalToSuperview().offset(10)
+            make.top.equalToSuperview().offset(8)
+            make.trailing.equalToSuperview().inset(-8)
             make.height.equalTo(24)
             make.width.greaterThanOrEqualTo(40)
         }
+        
+        // Optional rotation for ribbon effect
+        discountBadge.transform = CGAffineTransform(rotationAngle: CGFloat(-Double.pi / 12))
     }
 
     // MARK: - Configure
-
     func configure(with model: Book) {
         coverImageView.image = UIImage(named: model.coverImageName)
         titleLabel.text = model.title
@@ -130,8 +139,10 @@ final class BookCardCell: UICollectionViewCell {
         if let old = model.oldPrice {
             let attribute = NSAttributedString(
                 string: old,
-                attributes: [.strikethroughStyle: NSUnderlineStyle.single.rawValue,
-                             .foregroundColor: UIColor.red]
+                attributes: [
+                    .strikethroughStyle: NSUnderlineStyle.single.rawValue,
+                    .foregroundColor: UIColor.red
+                ]
             )
             oldPriceLabel.attributedText = attribute
         } else {
@@ -146,4 +157,3 @@ final class BookCardCell: UICollectionViewCell {
         }
     }
 }
-

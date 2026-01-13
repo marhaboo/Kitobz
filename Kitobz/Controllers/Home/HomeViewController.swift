@@ -1,8 +1,7 @@
-//
 //  HomeViewController.swift
 //  Kitobz
 //
-//  Created by Boymurodova Marhabo on 01/12/25.
+//  Created by Boymuroдова Marhabo on 01/12/25.
 //
 
 import UIKit
@@ -10,74 +9,32 @@ import SnapKit
 
 final class HomeViewController: UIViewController {
 
-    // MARK: - Nav items
     private var themeToggleButton: UIBarButtonItem?
 
-    // MARK: - ScrollView
     private let scrollView = UIScrollView()
     private let contentView = UIView()
 
-    // MARK: - Sections
     private let bannerSection = BannerSectionView()
     private let bestBooksSection = BookSectionView(title: "Лучшие книги")
     private let recommendedSection = BookSectionView(title: "Рекомендуем")
     private let discountSection = BookSectionView(title: "Скидки")
+    private let reviewSection = ReviewSectionView()
     private let quoteSection = QuoteSectionView()
     private let roundCardSection = RoundCardSectionView()
+    private let socialMediaSection = SocialMediaSectionView()
 
+    private var banners: [Banner] = []
+    private var allBooks: [Book] = []
+    private var bestBooks: [Book] = []
+    private var recommendedBooks: [Book] = []
+    private var discountBooks: [Book] = []
+    private var reviews: [ReviewItem] = []
+    private var quotes: [Quote] = []
+    private var roundCardItems: [RoundCardItem] = []
+    private var socialMediaItems: [SocialMediaItem] = []
+    private var stories: [Story] = []
+    private weak var storiesNavController: UINavigationController?
 
-    // MARK: - Mock Data
-    private var banners: [Banner] = [
-        Banner(imageName: "banner"),
-        Banner(imageName: "banner2"),
-        Banner(imageName: "banner")
-    ]
-
-    private var bestBooks: [Book] = [
-        .init(coverImageName: "book1", title: "Война и мир", author: "Лев Толстой", price: "75 TJS", oldPrice: nil, discountText: nil),
-        .init(coverImageName: "book2", title: "Преступление и наказание", author: "Фёдор Достоевский", price: "63 TJS", oldPrice: nil, discountText: nil),
-        .init(coverImageName: "book3", title: "Анна Каренина", author: "Лев Толстой", price: "52 TJS", oldPrice: nil, discountText: nil),
-        .init(coverImageName: "book1", title: "Война и мир", author: "Лев Толстой", price: "75 TJS", oldPrice: nil, discountText: nil),
-        .init(coverImageName: "book2", title: "Преступление и наказание", author: "Фёдор Достоевский", price: "63 TJS", oldPrice: nil, discountText: nil),
-        .init(coverImageName: "book3", title: "Анна Каренина", author: "Лев Толстой", price: "52 TJS", oldPrice: nil, discountText: nil)
-    ]
-
-
-    private var recommendedBooks: [Book] = [
-        .init(coverImageName: "book1", title: "451 градус по Фаренгейту", author: "Рэй Брэдбери", price: "42 TJS", oldPrice: nil, discountText: nil),
-        .init(coverImageName: "book2", title: "Гарри Поттер", author: "Дж. К. Роулинг", price: "60 TJS", oldPrice: nil, discountText: nil),
-        .init(coverImageName: "book1", title: "451 градус по Фаренгейту", author: "Рэй Брэдбери", price: "42 TJS", oldPrice: nil, discountText: nil),
-        .init(coverImageName: "book2", title: "Гарри Поттер", author: "Дж. К. Роулинг", price: "60 TJS", oldPrice: nil, discountText: nil)
-    ]
-
-
-    private var discountBooks: [Book] = [
-        .init(coverImageName: "book3", title: "Старик и море", author: "Эрнест Хемингуэй", price: "30 TJS", oldPrice: "45 TJS", discountText: "-33%"),
-        .init(coverImageName: "book1", title: "Алхимик", author: "Пауло Коэльо", price: "35 TJS", oldPrice: "50 TJS", discountText: "-30%"),
-        .init(coverImageName: "book3", title: "Старик и море", author: "Эрнест Хемингуэй", price: "30 TJS", oldPrice: "45 TJS", discountText: "-33%"),
-        .init(coverImageName: "book1", title: "Алхимик", author: "Пауло Коэльо", price: "35 TJS", oldPrice: "50 TJS", discountText: "-30%")
-    ]
-
-
-    private var quotes: [Quote] = [
-        .init(authorName: "АГАТА КРИСТИ", authorImageName: "author1", text: "Нет ничего более увлекательного, чем тайна, которую предстоит разгадать"),
-        .init(authorName: "СЕРГЕЙ ЕСЕНИН", authorImageName: "author2", text: "Если тронуть страсти в человеке, то, конечно, правды не найдешь"),
-        .init(authorName: "ФЁДОР ДОСТОЕВСКИЙ", authorImageName: "author3", text: "Перестать читать книги — значит перестать мыслить")
-    ]
-    
-    private var roundCardItems: [RoundCardItem] = [
-        .init(title: "Доставка", imageName: "Delivery"),
-        .init(title: "Рассрочка", imageName: "Installment"),
-        .init(title: "Соц. сети", imageName: "SocialMedia"),
-        .init(title: "Гифт карты", imageName: "GiftCards"),
-        .init(title: "Отзывы", imageName: "Reviews"),
-        .init(title: "О нас", imageName: "AboutUs"),
-        .init(title: "Аккаунт", imageName: "Account")
-        
-    ]
-
-
-    // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = UIColor(named: "Background")
@@ -85,29 +42,37 @@ final class HomeViewController: UIViewController {
         setupScrollView()
         setupSections()
         loadData()
+        setupBookTapHandlers()
+        setupStoriesTapHandler()
+        setupShowAllHandlers()
+        setupReviewsSection()
     }
 
-    // MARK: - Navigation Bar
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        updateThemeToggleIcon()
+        applyAppearanceForCurrentStyle()
+    }
+
     private func configureNavigationBar() {
         let bar = navigationController?.navigationBar
         bar?.prefersLargeTitles = false
         bar?.tintColor = UIColor.label
 
-        // Left menu button
+        // Left menu button - opens Settings
         let menuButton = UIButton(type: .system)
         menuButton.setImage(UIImage(systemName: "line.horizontal.3"), for: .normal)
         menuButton.tintColor = UIColor.label
-        menuButton.addTarget(self, action: #selector(didTapThemeToggle), for: .touchUpInside)
+        menuButton.addTarget(self, action: #selector(didTapMenuButton), for: .touchUpInside)
         menuButton.snp.makeConstraints { make in
             make.size.equalTo(CGSize(width: 28, height: 28))
         }
         navigationItem.leftBarButtonItem = UIBarButtonItem(customView: menuButton)
 
-        // Center logo as titleView
+        // Center logo
         let logo = UIImageView(image: UIImage(named: "logo"))
         logo.contentMode = .scaleAspectFit
         let titleWrapper = UIView()
-        
         titleWrapper.addSubview(logo)
         logo.snp.makeConstraints { make in
             make.center.equalToSuperview()
@@ -135,18 +100,16 @@ final class HomeViewController: UIViewController {
     private func applyAppearanceForCurrentStyle() {
         let appearance = UINavigationBarAppearance()
         appearance.configureWithOpaqueBackground()
-        appearance.backgroundColor = UIColor(named: "Background") ?? .systemBackground
-        appearance.shadowColor = UIColor.separator.withAlphaComponent(0.22)
+        appearance.backgroundColor = UIColor(named: "Background")
         appearance.titleTextAttributes = [.foregroundColor: UIColor.label]
-        appearance.largeTitleTextAttributes = [.foregroundColor: UIColor.label]
+        appearance.shadowColor = UIColor.separator.withAlphaComponent(0.2)
 
         let bar = navigationController?.navigationBar
         bar?.standardAppearance = appearance
-        bar?.compactAppearance = appearance
         bar?.scrollEdgeAppearance = appearance
+        bar?.compactAppearance = appearance
         bar?.tintColor = UIColor.label
     }
-
 
     private func updateThemeToggleIcon(on button: UIButton? = nil) {
         let isDark = traitCollection.userInterfaceStyle == .dark
@@ -156,14 +119,15 @@ final class HomeViewController: UIViewController {
         target?.setImage(image, for: .normal)
         target?.tintColor = UIColor.label
     }
+    
 
     override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
         super.traitCollectionDidChange(previousTraitCollection)
+        view.backgroundColor = UIColor(named: "Background")
         updateThemeToggleIcon()
         applyAppearanceForCurrentStyle()
     }
 
-    // MARK: - ScrollView Setup
     private func setupScrollView() {
         view.addSubview(scrollView)
         scrollView.addSubview(contentView)
@@ -175,9 +139,18 @@ final class HomeViewController: UIViewController {
         }
     }
 
-    // MARK: - Sections Layout
     private func setupSections() {
-        let sections = [bannerSection, bestBooksSection, recommendedSection, roundCardSection, discountSection, quoteSection]
+        let sections: [UIView] = [
+            bannerSection,
+            roundCardSection,
+            bestBooksSection,
+            recommendedSection,
+            discountSection,
+            reviewSection,
+            socialMediaSection,
+            quoteSection
+        ]
+
         var lastView: UIView? = nil
         for section in sections {
             contentView.addSubview(section)
@@ -191,37 +164,267 @@ final class HomeViewController: UIViewController {
             }
             lastView = section
         }
-
         lastView?.snp.makeConstraints { make in
             make.bottom.equalToSuperview().inset(12)
         }
     }
 
-    // MARK: - Load Data
     private func loadData() {
+        let baseBooks = BooksProvider.baseBooks()
+
+        reviews = ReviewsProvider.loadReviews(for: baseBooks)
+
+        let reviewsByBookId: [String: [ReviewItem]] = Dictionary(grouping: reviews, by: { $0.bookId })
+
+        let updatedBooks: [Book] = baseBooks.map { book in
+            let bookReviews = reviewsByBookId[book.id] ?? []
+            let newRating: Double
+            if !bookReviews.isEmpty {
+                let sum = bookReviews.reduce(0) { $0 + $1.rating }
+                let avg = Double(sum) / Double(bookReviews.count)
+                newRating = avg
+            } else {
+                newRating = book.rating
+            }
+
+            return Book(
+                coverImageName: book.coverImageName,
+                title: book.title,
+                author: book.author,
+                price: book.price,
+                oldPrice: book.oldPrice,
+                discountText: book.discountText,
+                id: book.id,
+                bookDescription: book.bookDescription,
+                rating: newRating,
+                ageRating: book.ageRating,
+                language: book.language,
+                coverType: book.coverType,
+                pageCount: book.pageCount,
+                publishYear: book.publishYear,
+                reviews: bookReviews,
+                quotes: book.quotes,
+                otherBooksByAuthor: book.otherBooksByAuthor,
+                isFavorite: FavoritesManager.shared.isFavorite(bookID: book.id) || book.isFavorite
+            )
+        }
+
+        allBooks = updatedBooks
+
+        if allBooks.count >= 10 {
+            bestBooks = Array(allBooks[0...3])
+            recommendedBooks = Array(allBooks[4...6])
+            discountBooks = Array(allBooks[7...])
+        } else {
+            bestBooks = allBooks
+            recommendedBooks = allBooks.reversed()
+            discountBooks = allBooks.shuffled()
+        }
+
+        banners = BannersProvider.loadBanners()
+        quotes = QuotesProvider.loadQuotes()
+        roundCardItems = RoundCardsProvider.loadItems()
+        socialMediaItems = SocialMediaProvider.loadItems()
+
+        stories = StoriesProvider.loadStories()
+        roundCardSection.items = stories.map { RoundCardItem(title: $0.title, imageName: $0.coverImageName) }
+        roundCardSection.seenFlags = stories.map { $0.isSeen }
+
         bannerSection.setBanners(banners)
         bestBooksSection.setBooks(bestBooks)
         recommendedSection.setBooks(recommendedBooks)
         discountSection.setBooks(discountBooks)
+        socialMediaSection.items = socialMediaItems
+        reviewSection.items = reviews
         quoteSection.setQuotes(quotes)
-        roundCardSection.items = roundCardItems
     }
 
-    // MARK: - Actions
-
-    @objc private func didTapThemeToggle() {
-        let isDark = traitCollection.userInterfaceStyle == .dark
-        overrideUserInterfaceStyle = isDark ? .light : .dark
-        applyAppearanceForCurrentStyle()
-        
-        navigationController?.navigationBar.setNeedsLayout()
-        navigationController?.navigationBar.layoutIfNeeded()
-
-        if let button = themeToggleButton?.customView as? UIButton {
-            updateThemeToggleIcon(on: button)
+    private func setupBookTapHandlers() {
+        bestBooksSection.onBookSelected = { [weak self] book in
+            self?.openBookDetail(book)
+        }
+        recommendedSection.onBookSelected = { [weak self] book in
+            self?.openBookDetail(book)
+        }
+        discountSection.onBookSelected = { [weak self] book in
+            self?.openBookDetail(book)
         }
     }
 
+    private func setupStoriesTapHandler() {
+        roundCardSection.onItemSelected = { [weak self] index in
+            self?.presentStory(at: index)
+        }
     }
 
+    private func setupShowAllHandlers() {
+        bestBooksSection.onShowAll = { [weak self] books, title in
+            self?.showAllBooks(books, title: title)
+        }
+        recommendedSection.onShowAll = { [weak self] books, title in
+            self?.showAllBooks(books, title: title)
+        }
+        discountSection.onShowAll = { [weak self] books, title in
+            self?.showAllBooks(books, title: title)
+        }
+    }
 
+    private func setupReviewsSection() {
+        reviewSection.presentingViewController = self
+        
+        reviewSection.onTapShowAllReviews = { [weak self] in
+            guard let self = self else { return }
+            
+            let allReviewsVC = AllReviewsViewController(
+                bookTitle: "Все отзывы",
+                reviews: self.reviews
+            )
+            self.navigationController?.pushViewController(allReviewsVC, animated: true)
+        }
+        
+        reviewSection.onReviewAdded = { [weak self] newReview in
+            guard let self = self else { return }
+            
+            // Add to main reviews array
+            self.reviews.insert(newReview, at: 0)
+            
+            // Update the book's rating
+            self.updateBookRatings(for: newReview.bookId)
+        }
+    }
+    
+    private func updateBookRatings(for bookId: String) {
+        // Find the book and update its rating
+        if let index = allBooks.firstIndex(where: { $0.id == bookId }) {
+            let bookReviews = reviews.filter { $0.bookId == bookId }
+            
+            if !bookReviews.isEmpty {
+                let sum = bookReviews.reduce(0) { $0 + $1.rating }
+                let avg = Double(sum) / Double(bookReviews.count)
+                allBooks[index].rating = avg
+            }
+            
+            // Update the sections if needed
+            if let bestIndex = bestBooks.firstIndex(where: { $0.id == bookId }) {
+                bestBooks[bestIndex] = allBooks[index]
+                bestBooksSection.setBooks(bestBooks)
+            }
+            if let recIndex = recommendedBooks.firstIndex(where: { $0.id == bookId }) {
+                recommendedBooks[recIndex] = allBooks[index]
+                recommendedSection.setBooks(recommendedBooks)
+            }
+            if let discIndex = discountBooks.firstIndex(where: { $0.id == bookId }) {
+                discountBooks[discIndex] = allBooks[index]
+                discountSection.setBooks(discountBooks)
+            }
+        }
+    }
+
+    private func showAllBooks(_ books: [Book], title: String) {
+        let vc = AllBooksViewController(title: title, books: books)
+        navigationController?.pushViewController(vc, animated: true)
+    }
+
+    private func presentStory(at index: Int) {
+        guard index >= 0, index < stories.count else { return }
+        let story = stories[index]
+        let viewer = StoriesViewerViewController(story: story)
+
+        viewer.onFinished = { [weak self] in
+            guard let self = self else { return }
+            self.stories[index].isSeen = true
+            self.roundCardSection.seenFlags[index] = true
+            self.roundCardSection.reloadItem(at: index)
+
+            if let nav = self.storiesNavController, nav.viewControllers.count <= 1 {
+                nav.dismiss(animated: true)
+            }
+        }
+
+        viewer.onRequestNextStory = { [weak self] in
+            guard let self = self else { return }
+            let nextIndex = index + 1
+            if nextIndex < self.stories.count {
+                self.pushNextStory(at: nextIndex)
+            } else {
+                self.storiesNavController?.dismiss(animated: true)
+            }
+        }
+
+        if let nav = storiesNavController {
+            nav.pushViewController(viewer, animated: true)
+        } else {
+            let nav = UINavigationController(rootViewController: viewer)
+            nav.isNavigationBarHidden = true
+            nav.modalPresentationStyle = .fullScreen
+            self.storiesNavController = nav
+            present(nav, animated: true)
+        }
+    }
+
+    private func pushNextStory(at index: Int) {
+        guard index >= 0, index < stories.count else { return }
+        guard let nav = storiesNavController else {
+            presentStory(at: index)
+            return
+        }
+        let story = stories[index]
+        let viewer = StoriesViewerViewController(story: story)
+
+        viewer.onFinished = { [weak self] in
+            guard let self = self else { return }
+            self.stories[index].isSeen = true
+            self.roundCardSection.seenFlags[index] = true
+            self.roundCardSection.reloadItem(at: index)
+
+            if nav.viewControllers.count <= 1 {
+                nav.dismiss(animated: true)
+            }
+        }
+
+        viewer.onRequestNextStory = { [weak self] in
+            guard let self = self else { return }
+            let nextIndex = index + 1
+            if nextIndex < self.stories.count {
+                self.pushNextStory(at: nextIndex)
+            } else {
+                nav.dismiss(animated: true)
+            }
+        }
+
+        nav.pushViewController(viewer, animated: true)
+    }
+
+    private func openBookDetail(_ book: Book) {
+        let filtered = reviews.filter { $0.bookId == book.id }
+        let vc = BookDetailViewController(book: book, reviews: filtered)
+        navigationController?.pushViewController(vc, animated: true)
+    }
+    
+    // MARK: - Button Actions
+    
+    @objc private func didTapMenuButton() {
+        let settingsVC = SettingsViewController()
+        navigationController?.pushViewController(settingsVC, animated: true)
+    }
+    
+    @objc private func didTapThemeToggle() {
+        let current = UserDefaults.standard.bool(forKey: "darkMode")
+        let newValue = !current
+        UserDefaults.standard.set(newValue, forKey: "darkMode")
+
+        if let window = view.window ?? UIApplication.shared.connectedScenes
+            .compactMap({ $0 as? UIWindowScene })
+            .first?.windows.first {
+            UIView.transition(with: window, duration: 0.3, options: [.transitionCrossDissolve, .allowAnimatedContent]) {
+                window.overrideUserInterfaceStyle = newValue ? .dark : .light
+            }
+        } else {
+            overrideUserInterfaceStyle = newValue ? .dark : .light
+            navigationController?.overrideUserInterfaceStyle = overrideUserInterfaceStyle
+        }
+
+        updateThemeToggleIcon()
+        applyAppearanceForCurrentStyle()
+    }
+}

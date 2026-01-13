@@ -59,8 +59,8 @@ class TabBarController: UITabBarController {
         let favVC = createNavigationController(
             with: "Избранные",
             and: UIImage(systemName: "bookmark.fill"),
-            vc: CartViewController()
-        )
+            vc: FavoritesViewController()
+    )
         
         let profileVC = createNavigationController(
             with: "Профиль",

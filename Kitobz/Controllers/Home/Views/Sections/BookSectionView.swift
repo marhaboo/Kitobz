@@ -1,4 +1,3 @@
-
 //  BookSectionView.swift
 //  Kitobz
 //
@@ -9,6 +8,9 @@ import UIKit
 import SnapKit
 
 final class BookSectionView: UIView {
+    
+    var onBookSelected: ((Book) -> Void)?
+    var onShowAll: (([Book], String) -> Void)?
     
     private let titleLabel: UILabel = {
         let l = UILabel()
@@ -31,26 +33,33 @@ final class BookSectionView: UIView {
         l.textColor = UIColor(named: "AccentColor2")
         l.text = "Все"
         l.textAlignment = .right
+        l.isUserInteractionEnabled = true
         return l
     }()
 
+    private var sectionTitle: String = ""
     
     init(title: String) {
         let layout = UICollectionViewFlowLayout()
         layout.scrollDirection = .horizontal
         layout.minimumLineSpacing = 12
         layout.minimumInteritemSpacing = 0
+        
         collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
         collectionView.showsHorizontalScrollIndicator = false
         collectionView.backgroundColor = .clear
         
         super.init(frame: .zero)
         titleLabel.text = title
+        sectionTitle = title
         
         addSubview(titleLabel)
         addSubview(allLabel)
         addSubview(collectionView)
 
+        // Tap on "Все"
+        let tap = UITapGestureRecognizer(target: self, action: #selector(didTapAll))
+        allLabel.addGestureRecognizer(tap)
         
         collectionView.dataSource = self
         collectionView.delegate = self
@@ -85,6 +94,10 @@ final class BookSectionView: UIView {
     func setBooks(_ books: [Book]) {
         self.books = books
     }
+    
+    @objc private func didTapAll() {
+        onShowAll?(books, sectionTitle)
+    }
 }
 
 extension BookSectionView: UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
@@ -97,6 +110,11 @@ extension BookSectionView: UICollectionViewDataSource, UICollectionViewDelegateF
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: BookCardCell.id, for: indexPath) as! BookCardCell
         cell.configure(with: books[indexPath.item])
         return cell
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        let book = books[indexPath.item]
+        onBookSelected?(book)
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
